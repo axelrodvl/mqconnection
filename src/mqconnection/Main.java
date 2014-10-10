@@ -3,18 +3,12 @@ package mqconnection;
 public class Main {
 
     public static void main(String[] args) {  
+        MQConnection mqc = new MQConnection();
         
-        RandomVariableCreator rvc = new RandomVariableCreator();
-        
-        String abc = new String(rvc.createVariable());
-        System.out.println(abc);
-
-        System.out.println(rvc.createVariable());
-        System.out.println(rvc.createVariable());
-        
-        JMeterMQTools mqt = new JMeterMQTools();
+        System.out.println(mqc.createVariable());
+        System.out.println(mqc.createVariable());
        
-        mqt.clearQueue("MQSTUB.IN"); 
-        mqt.clearQueue("MQSTUB.OUT");
+        mqc.clearQueue("MQSTUB.IN"); 
+        mqc.clearQueue("MQSTUB.OUT");
     }   
 }

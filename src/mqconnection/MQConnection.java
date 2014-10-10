@@ -9,8 +9,21 @@ import com.ibm.mq.*;
 import com.ibm.msg.client.wmq.WMQConstants;
 
 
-
-class JMeterMQTools {
+public class MQConnection {
+    public void MQConnection() {
+        
+    }
+    
+    public String createVariable() {
+	    String outID = new String("");
+            int temp;
+	    for (int i = 0; i < 24; ++i) {
+                temp = ((int)(Math.random() * 1000) % 36) + 97;
+                outID += (temp < 123) ? (char)temp : (char)(temp - 75);
+	    }
+	    return outID;
+    }
+    
     public void clearQueue(String mqQueue) {
         int depth = 0;  
         MQQueueManager qMgr; // define a queue manager object  
@@ -56,23 +69,4 @@ class JMeterMQTools {
            err.printStackTrace();  
         }
     }
-}
-
-class RandomVariableCreator {
-    public String createVariable() {
-	    String outID = new String("");
-            int temp;
-	    for (int i = 0; i < 24; ++i) {
-                temp = ((int)(Math.random() * 1000) % 36) + 97;
-                outID += (temp < 123) ? (char)temp : (char)(temp - 75);
-	    }
-	    return outID;
-    }
-}
-
-public class MQConnection {
-    public void MQConnection() {
-        
-    }
-    
 }
