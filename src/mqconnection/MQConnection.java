@@ -1,17 +1,60 @@
 package mqconnection;
 
-import javax.xml.*;
-
-import javax.jms.*;
-import com.ibm.jms.*;
 import com.ibm.mq.*;
 
-import com.ibm.msg.client.wmq.WMQConstants;
-
-
 public class MQConnection {
-    public void MQConnection() {
+    // MQEnvironment init variables
+    String queueMgrName = null;
+    String queueMgrHostname = null;
+    int queueMgrPort = 0;
+    String queueMgrChannel = null; 
+    String putQueueName = null;
+    String getQueueName = null;
+    
+    // MQEnvironment Tools
+    MQQueueManager queueMgr = null;
+    MQQueue putQueue = null;
+    MQQueue getQueue = null;
+    MQPutMessageOptions pmo = new MQPutMessageOptions();
+    MQGetMessageOptions gmo = new MQGetMessageOptions();
+    MQMessage requestMsg = new MQMessage();
+    MQMessage responseMsg = new MQMessage();
+    String msgBody = null;
+    String requestXML = null;
+    byte[] responseMsgData = null;
+    String msg = null;
+    
+    public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) {
+        this.queueMgrName = queueMgrName;
+        this.queueMgrHostname = queueMgrHostname;
+        this.queueMgrPort = queueMgrPort;
+        this.queueMgrChannel = queueMgrChannel;
         
+        MQEnvironment.hostname = this.queueMgrHostname;
+        MQEnvironment.port = this.queueMgrPort;
+        MQEnvironment.channel = this.queueMgrChannel;
+        
+        try {
+            queueMgr = new MQQueueManager(queueMgrName);
+        }
+        catch (MQException ex) {
+            System.out.println("Error connecting to queue manager. Reason: " + ex.reasonCode);
+            System.out.println(ex.getMessage());
+        }
+        
+        try {
+            putQueue = queueMgr.accessQueue(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
+            getQueue= queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+            System.out.println("Successful connection to " + this.queueMgrName);
+        }
+        catch (MQException ex) {
+            System.out.println("Error accessing queues. Reason: " + ex.reasonCode);
+            System.out.println(ex.getMessage());
+        }
+    }
+    
+    public MQConnection() {
+        System.out.println("MQConnection. Empty constructor.");
     }
     
     public String createVariable() {
@@ -24,6 +67,9 @@ public class MQConnection {
 	    return outID;
     }
     
+    
+    
+    @Deprecated
     public void clearQueue(String mqQueue) {
         int depth = 0;  
         MQQueueManager qMgr; // define a queue manager object  
