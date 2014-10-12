@@ -82,11 +82,16 @@ public class MQConnection {
         }
     }
     
-    public boolean sendMessage(String queueName, Message message) {
+    public boolean sendMessage(String putQueueName, Message message) {
+        MQMessage mqmessage = new MQMessage();
+        MQPutMessageOptions pmo = new MQPutMessageOptions();
+        MQQueue putQueue = null;
+        
         try {
+            putQueue = queueMgr.accessQueue(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
             pmo.options = MQC.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.
-            requestMsg.replyToQueueName = getQueueName; // the response should be put on this queue            
-            requestMsg.report=MQC.MQRO_PASS_MSG_ID; //If a report or reply is generated as a result of this message, the MsgId of this message is copied to the MsgId of the report or reply message.
+            mqmessage.replyToQueueName = getQueueName; // the response should be put on this queue            
+            mqmessage.report=MQC.MQRO_PASS_MSG_ID; //If a report or reply is generated as a result of this message, the MsgId of this message is copied to the MsgId of the report or reply message.
             requestMsg.format = MQC.MQFMT_STRING; // Set message format. The application message data can be either an SBCS string (single-byte character set), or a DBCS string (double-byte character set). 
             requestMsg.messageType=MQC.MQMT_REQUEST; // The message is one that requires a reply.
             requestMsg.writeString(msgBody); // message payload
