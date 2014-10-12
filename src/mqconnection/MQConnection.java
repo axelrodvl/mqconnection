@@ -3,26 +3,19 @@ package mqconnection;
 import com.ibm.mq.*;
 
 public class MQConnection {
-    // MQEnvironment init variables
     String queueMgrName = null;
     String queueMgrHostname = null;
     int queueMgrPort = 0;
     String queueMgrChannel = null; 
-    String putQueueName = null;
-    String getQueueName = null;
-    
-    // MQEnvironment Tools
     MQQueueManager queueMgr = null;
-    MQQueue putQueue = null;
-    MQQueue getQueue = null;
-    MQPutMessageOptions pmo = new MQPutMessageOptions();
-    MQGetMessageOptions gmo = new MQGetMessageOptions();
-    MQMessage requestMsg = new MQMessage();
-    MQMessage responseMsg = new MQMessage();
-    String msgBody = null;
-    String requestXML = null;
-    byte[] responseMsgData = null;
-    String msg = null;
+    
+    public class Queue {
+        
+    }
+    
+    public class Message {
+        
+    }
     
     public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) {
         this.queueMgrName = queueMgrName;
@@ -42,6 +35,7 @@ public class MQConnection {
             System.out.println(ex.getMessage());
         }
         
+        /*
         try {
             putQueue = queueMgr.accessQueue(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
             getQueue= queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
@@ -51,68 +45,55 @@ public class MQConnection {
             System.out.println("Error accessing queues. Reason: " + ex.reasonCode);
             System.out.println(ex.getMessage());
         }
+        */
     }
     
     public MQConnection() {
         System.out.println("MQConnection. Empty constructor.");
     }
     
-    public String createVariable() {
-	    String outID = new String("");
-            int temp;
-	    for (int i = 0; i < 24; ++i) {
-                temp = ((int)(Math.random() * 1000) % 36) + 97;
-                outID += (temp < 123) ? (char)temp : (char)(temp - 75);
-	    }
-	    return outID;
-    }
-    
-    
-    
-    @Deprecated
-    public void clearQueue(String mqQueue) {
-        int depth = 0;  
-        MQQueueManager qMgr; // define a queue manager object  
-        String mqHost = "localhost";  
-        String mqPort = "1420";  
-        String mqChannel = "SYSTEM.DEF.SVRCONN";  
-        String mqQMgr = "WS084.TEST.QM";  
-        try {  
-            // Set up MQSeries environment  
-           MQEnvironment.hostname = mqHost;  
-           MQEnvironment.port = Integer.valueOf(mqPort).intValue();  
-           MQEnvironment.channel = mqChannel;  
-           MQEnvironment.properties.put(MQC.TRANSPORT_PROPERTY,  
-           MQC.TRANSPORT_MQSERIES);  
-           qMgr = new MQQueueManager(mqQMgr);  
-         
+    public boolean clearQueue(String queueName) {
+        int depth = 0;
+        
+        try {
            int openOptions = MQC.MQOO_INQUIRE;  
-           
-           MQQueue destQueue = qMgr.accessQueue(mqQueue, openOptions);  
-           depth = destQueue.getCurrentDepth();  
-           
-           destQueue.close();
+           MQQueue queue = queueMgr.accessQueue(queueName, openOptions);  
+           depth = queue.getCurrentDepth();  
+           queue.close();
            
            openOptions = MQC.MQOO_INPUT_AS_Q_DEF;
-           destQueue = qMgr.accessQueue(mqQueue, openOptions);  
-           
+           queue = queueMgr.accessQueue(queueName, openOptions);  
            MQMessage message = new MQMessage();
            
            for (int i = 0; i < depth; ++i) {
-               destQueue.get(message);
+               queue.get(message);
+               //message.clearMessage();
                message = null;
                message = new MQMessage();
            }
-           
-           destQueue.close();  
-           qMgr.disconnect();  
-           
-           System.out.println("Queue " + mqQueue + ": cleared");
+           queue.close();  
+           System.out.println("Queue " + queueName + ": cleared");
+           return true;
         } 
-        
-        catch (Exception err) {  
-           System.out.println("Some error while clearing queue.");
-           err.printStackTrace();  
+        catch (MQException ex) {  
+            System.out.println("Error while clearing queue.");
+            System.out.println(ex.toString());
+            return false;
+        }
+    }
+    
+    public boolean sendMessage(String queueName, Message message) {
+        try {
+            pmo.options = MQC.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.
+            requestMsg.replyToQueueName = getQueueName; // the response should be put on this queue            
+            requestMsg.report=MQC.MQRO_PASS_MSG_ID; //If a report or reply is generated as a result of this message, the MsgId of this message is copied to the MsgId of the report or reply message.
+            requestMsg.format = MQC.MQFMT_STRING; // Set message format. The application message data can be either an SBCS string (single-byte character set), or a DBCS string (double-byte character set). 
+            requestMsg.messageType=MQC.MQMT_REQUEST; // The message is one that requires a reply.
+            requestMsg.writeString(msgBody); // message payload
+            putQueue.put(requestMsg, pmo);
+        } catch(Exception e) {
+        	lr.error_message("Error sending message.");
+        	lr.exit(lr.EXIT_VUSER, lr.FAIL);
         }
     }
 }
