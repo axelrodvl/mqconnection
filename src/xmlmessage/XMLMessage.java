@@ -1,4 +1,4 @@
-package mqconnection;
+package xmlmessage;
 
 import java.io.*;
 import javax.xml.parsers.*;

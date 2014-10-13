@@ -1,5 +1,6 @@
 package mqconnection;
 
+import xmlmessage.XMLMessage;
 import com.ibm.mq.*;
 import java.io.*;
 
@@ -77,6 +78,7 @@ public class MQConnection {
             requestMsg.writeString(xmlMessage.toString()); // message payload
             putQueue.put(requestMsg, pmo);
             
+            System.out.println("sendMessageSingle: message sent to " + putQueueName);
             return true;
         } 
         catch(MQException | IOException ex) {
