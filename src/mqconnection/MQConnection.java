@@ -1,7 +1,7 @@
 package mqconnection;
 
 import com.ibm.mq.*;
-import java.io.IOException;
+import java.io.*;
 
 public class MQConnection {
     String queueMgrName = null;
@@ -9,14 +9,6 @@ public class MQConnection {
     int queueMgrPort = 0;
     String queueMgrChannel = null; 
     MQQueueManager queueMgr = null;
-    
-    public class Queue {
-        
-    }
-    
-    public class Message {
-        
-    }
     
     public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) {
         this.queueMgrName = queueMgrName;
@@ -71,7 +63,7 @@ public class MQConnection {
         }
     }
     
-    public boolean sendMessageSimple(String putQueueName, String replytToQueueName, String msgBody) {
+    public boolean sendMessageSimple(String putQueueName, String replytToQueueName, XMLMessage xmlMessage) {
         MQQueue putQueue = null;
         MQPutMessageOptions pmo = new MQPutMessageOptions();
         MQMessage requestMsg = new MQMessage();
@@ -82,7 +74,7 @@ public class MQConnection {
             requestMsg.report=MQC.MQRO_PASS_MSG_ID; //If a report or reply is generated as a result of this message, the MsgId of this message is copied to the MsgId of the report or reply message.
             requestMsg.format = MQC.MQFMT_STRING; // Set message format. The application message data can be either an SBCS string (single-byte character set), or a DBCS string (double-byte character set). 
             requestMsg.messageType=MQC.MQMT_REQUEST; // The message is one that requires a reply.
-            requestMsg.writeString(msgBody); // message payload
+            requestMsg.writeString(xmlMessage.toString()); // message payload
             putQueue.put(requestMsg, pmo);
             
             return true;
@@ -92,5 +84,12 @@ public class MQConnection {
             System.out.println(ex.toString());
             return false;
         }
+    }
+    
+    public void testXML(String msgBody) {
+        XMLMessage xmlMessage = new XMLMessage(msgBody);
+        System.out.println(xmlMessage.getXpathValue("/TestingMQStubInput/Converting/FormatToConvert"));
+        //xmlMessage.replaceXpathValue("/TestingMQStubInput/Converting/FormatToConvert", "yahoo")
+        System.out.println(xmlMessage);
     }
 }
