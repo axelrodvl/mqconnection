@@ -71,7 +71,7 @@ public class MQConnection {
         }
     }
     
-    public boolean sendMessageSingle(String putQueueName, String replytToQueueName, String msgBody) {
+    public boolean sendMessageSimple(String putQueueName, String replytToQueueName, String msgBody) {
         MQQueue putQueue = null;
         MQPutMessageOptions pmo = new MQPutMessageOptions();
         MQMessage requestMsg = new MQMessage();
