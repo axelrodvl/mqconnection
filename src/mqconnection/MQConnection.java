@@ -85,11 +85,4 @@ public class MQConnection {
             return false;
         }
     }
-    
-    public void testXML(String msgBody) {
-        XMLMessage xmlMessage = new XMLMessage(msgBody);
-        System.out.println(xmlMessage.getXpathValue("/TestingMQStubInput/Converting/FormatToConvert"));
-        //xmlMessage.replaceXpathValue("/TestingMQStubInput/Converting/FormatToConvert", "yahoo")
-        System.out.println(xmlMessage);
-    }
 }
