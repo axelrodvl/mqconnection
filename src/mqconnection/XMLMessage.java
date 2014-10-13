@@ -6,8 +6,7 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 import org.xml.sax.*;
 
 public class XMLMessage {
@@ -67,37 +66,12 @@ public class XMLMessage {
     
     public boolean replaceXpathValue(String xpathToValue, String value) {
         try {
-            XPathFactory xpathFactory = XPathFactory.newInstance();
-            XPathExpression xp = XPathFactory.newInstance().newXPath().compile(xpathToValue);
-            String href = xp.evaluate(document);
-            
-            
-            
-            /*
-            //NodeList links = (NodeList) xp.evaluate(document, XPathConstants.NODESET);
-            
-            Node node 
-            
-            //href.item(idx).setTextContent(textToReplace);
-            href.setTextContent(textToReplace);
-            
-            
-            document.
-            
-            document.renameNode(document, msgBody, xpathToValue)
-            
-            String value = xpath.evaluate(xpathToValue, document);
-            System.out.println("Value (" + xpathToValue + "): " + value);
-            return value;*/
-            
-            //updateMsgBody();
-            return true;
+            updateMsgBody();
         }
         catch (Exception ex) {
-            System.out.println("getXpathValue: error");
             System.out.println(ex.toString());
-            return false;
         }
+        return false;
     }
     
     @Override
