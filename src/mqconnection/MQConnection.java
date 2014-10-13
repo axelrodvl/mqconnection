@@ -78,16 +78,76 @@ public class MQConnection {
             requestMsg.writeString(xmlMessage.toString()); // message payload
             putQueue.put(requestMsg, pmo);
             
+            putQueue.close();
+            
             System.out.println("sendMessageSingle: message sent to " + putQueueName);
             return true;
         } 
         // For JDK 1.7: catch(MQException | IOException ex) {
         
-        // For JDK 1.5:
+        // For JDK 1.5
         catch(Exception ex) {
             System.out.println("sendMessageSingle: error");
             System.out.println(ex.toString());
             return false;
+        }
+    }
+    
+    public XMLMessage getResponse(String putQueueName, String getQueueName, XMLMessage requestXmlMessage) {
+        MQQueue putQueue = null;
+        MQQueue getQueue = null;
+        MQPutMessageOptions pmo = new MQPutMessageOptions();
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage requestMsg = new MQMessage();
+        MQMessage responseMsg = new MQMessage();
+        byte[] responseMsgData = null;
+        String msg = null;        
+        
+        try {
+            putQueue = queueMgr.accessQueue(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
+            pmo.options = MQC.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.
+            requestMsg.replyToQueueName = getQueueName; // the response should be put on this queue
+            requestMsg.report=MQC.MQRO_PASS_MSG_ID; //If a report or reply is generated as a result of this message, the MsgId of this message is copied to the MsgId of the report or reply message.
+            requestMsg.format = MQC.MQFMT_STRING; // Set message format. The application message data can be either an SBCS string (single-byte character set), or a DBCS string (double-byte character set). 
+            requestMsg.messageType=MQC.MQMT_REQUEST; // The message is one that requires a reply.
+            requestMsg.writeString(requestXmlMessage.toString()); // message payload
+            putQueue.put(requestMsg, pmo);
+            
+            putQueue.close();
+            
+            System.out.println("newPutGetTransaction: request message sent to " + putQueueName);
+        }
+        catch (Exception ex) {
+            System.out.println("newPutGetTransaction: error while sending request");
+            System.out.println(ex.toString());
+            return null;
+        }
+        
+        try {    
+            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+            responseMsg.messageId = requestMsg.messageId; // The Id to be matched against when getting a message from a queue
+            //gmo.matchOptions=MQC.MQMO_MATCH_CORREL_ID; // The message to be retrieved must have a correlation identifier that matches the value of the CorrelId field in the MsgDesc parameter of the MQGET call.
+            gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID; // The message to be retrieved must have a correlation identifier that matches the value of the CorrelId field in the MsgDesc parameter of the MQGET call.
+            gmo.options=MQC.MQGMO_WAIT; // The application waits until a suitable message arrives.
+            gmo.waitInterval=60000; // timeout in ms
+            getQueue.get(responseMsg, gmo);
+            
+            // Check the message content
+            responseMsgData = responseMsg.readStringOfByteLength(responseMsg.getTotalMessageLength()).getBytes();
+            
+            getQueue.close();
+            
+            System.out.println("newPutGetTransaction: response message got from " + getQueueName);
+            
+            return new XMLMessage(new String(responseMsgData));
+        } 
+        // For JDK 1.7: catch(MQException | IOException ex) {
+        
+        // For JDK 1.5
+        catch(Exception ex) {
+            System.out.println("newPutGetTransaction: error while getting response");
+            System.out.println(ex.toString());
+            return null;
         }
     }
 }
