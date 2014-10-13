@@ -26,7 +26,12 @@ public class XMLMessage {
             document = db.parse(source);
             System.out.println("XMLMessage: new message has successfully parsed from string");
         }
-        catch (ParserConfigurationException | SAXException | IOException ex) {
+        
+        // For JDK 1.7:
+        // catch (ParserConfigurationException | SAXException | IOException ex) {
+        
+        // For JDK 1.5:
+        catch (Exception ex) {
             System.out.println("XMLMessage: error");
             System.out.println(ex.toString());
         }
@@ -41,7 +46,11 @@ public class XMLMessage {
             transformer.transform(new DOMSource(document), new StreamResult(writer));
             msgBody = writer.getBuffer().toString().replaceAll("\n|\r", "");
         }
-        catch (IllegalArgumentException | TransformerException ex) {
+        // For JDK 1.7:
+        //catch (IllegalArgumentException | TransformerException ex) {
+        
+        // For JDK 1.5:
+        catch (Exception ex) {
             System.out.println("XMLDocument.updateMsgBody(): error");
             System.out.println("WARNING! msgBody has not updated!");
             System.out.println(ex.toString());

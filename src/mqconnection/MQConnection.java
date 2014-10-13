@@ -81,7 +81,10 @@ public class MQConnection {
             System.out.println("sendMessageSingle: message sent to " + putQueueName);
             return true;
         } 
-        catch(MQException | IOException ex) {
+        // For JDK 1.7: catch(MQException | IOException ex) {
+        
+        // For JDK 1.5:
+        catch(Exception ex) {
             System.out.println("sendMessageSingle: error");
             System.out.println(ex.toString());
             return false;
