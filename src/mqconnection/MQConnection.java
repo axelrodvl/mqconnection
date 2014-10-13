@@ -2,7 +2,8 @@ package mqconnection;
 
 import xmlmessage.XMLMessage;
 import com.ibm.mq.*;
-import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MQConnection {
     String queueMgrName = null;
@@ -148,6 +149,42 @@ public class MQConnection {
             System.out.println("newPutGetTransaction: error while getting response");
             System.out.println(ex.toString());
             return null;
+        }
+    }
+    
+    public void closeConnection() {
+        try {
+            queueMgr.close();
+        }
+        catch (MQException ex) {
+            
+        }
+        queueMgr = null;
+    }
+        
+    @Override
+    protected void finalize()
+    { 
+        System.out.println("Finalizing");
+        try {
+            queueMgr.close();
+            
+            queueMgrName = null;
+            queueMgrHostname = null;
+            queueMgrPort = 0;
+            queueMgrChannel = null; 
+            queueMgr = null;
+            
+            
+        }
+        catch (MQException ex) {
+        }
+        
+        try {
+            super.finalize();
+        }
+        catch (Throwable ex) {
+            Logger.getLogger(MQConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

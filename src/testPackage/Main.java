@@ -20,5 +20,7 @@ public class Main {
         XMLMessage responseXmlMessage = mqc.getResponse("MQSTUB.IN", "MQSTUB.OUT", requestXmlMessage);
         
         System.out.println(responseXmlMessage.toString());
+        
+        mqc.closeConnection();
     }
 }
