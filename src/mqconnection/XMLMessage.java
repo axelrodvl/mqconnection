@@ -7,6 +7,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.*;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.xml.sax.*;
 
 public class XMLMessage {
@@ -70,8 +71,12 @@ public class XMLMessage {
             XPathExpression xp = XPathFactory.newInstance().newXPath().compile(xpathToValue);
             String href = xp.evaluate(document);
             
+            
+            
             /*
             //NodeList links = (NodeList) xp.evaluate(document, XPathConstants.NODESET);
+            
+            Node node 
             
             //href.item(idx).setTextContent(textToReplace);
             href.setTextContent(textToReplace);
@@ -85,7 +90,7 @@ public class XMLMessage {
             System.out.println("Value (" + xpathToValue + "): " + value);
             return value;*/
             
-            updateMsgBody();
+            //updateMsgBody();
             return true;
         }
         catch (Exception ex) {
