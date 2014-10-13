@@ -157,7 +157,7 @@ public class MQConnection {
             queueMgr.close();
         }
         catch (MQException ex) {
-            
+            System.out.println("Error while closing connection");
         }
         queueMgr = null;
     }
@@ -165,7 +165,6 @@ public class MQConnection {
     @Override
     protected void finalize()
     { 
-        System.out.println("Finalizing");
         try {
             queueMgr.close();
             
