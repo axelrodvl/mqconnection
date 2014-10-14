@@ -63,9 +63,9 @@ public class XMLMessage {
             
             for (int k = 0; k < nodes.getLength(); k++)
             {
-                System.out.println(nodes.item(k).getTextContent());  // Prints original value
+                //System.out.println(nodes.item(k).getTextContent());  // Prints original value
                 nodes.item(k).setTextContent(xPathValue);
-                System.out.println(nodes.item(k).getTextContent());  // Prints 111 after
+                //System.out.println(nodes.item(k).getTextContent());  // Prints 111 after
             }
             
             updateMsgBody();

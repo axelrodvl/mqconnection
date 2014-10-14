@@ -195,7 +195,6 @@ public class MQConnection {
     }
     
     public void makeTransactionStaticConnection(XMLMessage requestXmlMessage) {
-        System.out.println("New transaction");
         // Request
         try {
             sc.requestMsg.writeString(requestXmlMessage.toString()); // message payload
@@ -211,7 +210,6 @@ public class MQConnection {
             sc.responseXmlMessage = new XMLMessage(new String(sc.responseMsgData));
             sc.responseMsg.clearMessage();
         } catch(Exception ex) {}
-        System.out.println("End. New transaction");
     }
     
     public void finalizeStaticConnection() {
