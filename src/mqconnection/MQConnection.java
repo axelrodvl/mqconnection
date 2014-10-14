@@ -103,22 +103,14 @@ public class MQConnection {
         }
     }
     
-    public boolean sendMessageSimple(String putQueueName, String replytToQueueName, XMLMessage xmlMessage) {
+    public boolean sendMessage(String putQueueName, MQMessage message) {
         MQQueue putQueue = null;
         MQPutMessageOptions pmo = new MQPutMessageOptions();
-        MQMessage requestMsg = new MQMessage();
         try {
             putQueue = queueMgr.accessQueue(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
-            pmo.options = MQC.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.
-            requestMsg.replyToQueueName = replytToQueueName; // the response should be put on this queue
-            requestMsg.report=MQC.MQRO_PASS_MSG_ID; //If a report or reply is generated as a result of this message, the MsgId of this message is copied to the MsgId of the report or reply message.
-            requestMsg.format = MQC.MQFMT_STRING; // Set message format. The application message data can be either an SBCS string (single-byte character set), or a DBCS string (double-byte character set). 
-            requestMsg.messageType=MQC.MQMT_REQUEST; // The message is one that requires a reply.
-            requestMsg.writeString(xmlMessage.toString()); // message payload
-            putQueue.put(requestMsg, pmo);
-            
+            pmo.options = MQC.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.            
+            putQueue.put(message, pmo);
             putQueue.close();
-            
             System.out.println("sendMessageSingle: message sent to " + putQueueName);
             return true;
         } 
@@ -129,6 +121,35 @@ public class MQConnection {
             System.out.println("sendMessageSingle: error");
             System.out.println(ex.toString());
             return false;
+        }
+    }
+    
+    public MQMessage getMessageSimple(String getQueueName) {
+        MQQueue getQueue = null;
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        byte[] responseMsgData = null;
+        String msg = null;  
+        
+        try {
+            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+            //responseMsg.messageId = requestMsg.messageId; // The Id to be matched against when getting a message from a queue
+            //gmo.matchOptions=MQC.MQMO_MATCH_CORREL_ID; // The message to be retrieved must have a correlation identifier that matches the value of the CorrelId field in the MsgDesc parameter of the MQGET call.
+            //gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID; // The message to be retrieved must have a correlation identifier that matches the value of the CorrelId field in the MsgDesc parameter of the MQGET call.
+            //gmo.options=MQC.MQGMO_WAIT; // The application waits until a suitable message arrives.
+            //gmo.waitInterval=60000; // timeout in ms
+            
+            
+            
+            getQueue.get(responseMsg, gmo);
+            //responseMsgData = responseMsg.readStringOfByteLength(responseMsg.getTotalMessageLength()).getBytes();
+            getQueue.close();
+
+            System.out.println("getMessageSimple: message recieved from " + getQueueName);
+
+            return responseMsg;
+        } catch (Exception ex) {
+            return null;
         }
     }
     
@@ -215,6 +236,20 @@ public class MQConnection {
     public void finalizeStaticConnection() {
         sc.closeConnection();
         sc = null;
+    }
+    
+    public MQMessage newMessage(XMLMessage xmlMessage) {
+        try {
+            MQMessage message = new MQMessage();
+            message.replyToQueueName = "SOMEQUEUE";
+            message.report=MQC.MQRO_PASS_MSG_ID;
+            message.format = MQC.MQFMT_STRING;
+            message.messageType=MQC.MQMT_REQUEST;
+            message.writeString(xmlMessage.toString());
+            return message;
+        } catch(Exception ex) {
+            return null;
+        }
     }
     
     public void closeConnection() {
