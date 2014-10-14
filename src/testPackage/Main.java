@@ -15,11 +15,25 @@ public class Main {
  		"<ElemBoolean>false</ElemBoolean> </Data></TestingMQStubInput>";
         
         XMLMessage requestXmlMessage = new XMLMessage(requestXMLString);
-        mqc.sendMessageSimple("MQSTUB.OUT", "MQSTUB.OUT", requestXmlMessage);
+        //mqc.sendMessageSimple("MQSTUB.OUT", "MQSTUB.OUT", requestXmlMessage);
         
-        XMLMessage responseXmlMessage = mqc.getResponse("MQSTUB.IN", "MQSTUB.OUT", requestXmlMessage);
+        //XMLMessage responseXmlMessage = mqc.getResponse("MQSTUB.IN", "MQSTUB.OUT", requestXmlMessage);
+        //System.out.println(responseXmlMessage.toString());
         
-        System.out.println(responseXmlMessage.toString());
+        XMLMessage responseXmlMessage = null;
+        
+        mqc.initGetResponseStaticConnection("MQSTUB.IN", "MQSTUB.OUT");
+        
+        responseXmlMessage = mqc.getResponseStaticConnection(requestXmlMessage);
+        System.out.println("1 - " + responseXmlMessage.toString());
+        
+        responseXmlMessage = mqc.getResponseStaticConnection(requestXmlMessage);
+        System.out.println("2 - " + responseXmlMessage.toString());
+        
+        responseXmlMessage = mqc.getResponseStaticConnection(requestXmlMessage);
+        System.out.println("3 - " + responseXmlMessage.toString());
+        
+        mqc.finalizeGetResponseStaticConnection();
         
         mqc.closeConnection();
     }
