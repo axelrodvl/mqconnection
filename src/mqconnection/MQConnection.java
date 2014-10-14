@@ -124,6 +124,16 @@ public class MQConnection {
         }
     }
     
+    public XMLMessage messageToXML(MQMessage message) {
+        try {
+            byte[] data = new byte[message.getDataLength()];
+            message.readFully(data, 0, message.getDataLength());
+            return new XMLMessage(new String(data));
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+    
     public MQMessage getMessageSimple(String getQueueName) {
         MQQueue getQueue = null;
         MQGetMessageOptions gmo = new MQGetMessageOptions();
@@ -139,10 +149,10 @@ public class MQConnection {
             //gmo.options=MQC.MQGMO_WAIT; // The application waits until a suitable message arrives.
             //gmo.waitInterval=60000; // timeout in ms
             
-            
+            //gmo.matchOptions = MQC.MQGMO_MSG_UNDER_CURSOR;
+            //gmo.matchOptions = MQC.MQGMO_BROWSE_FIRST;
             
             getQueue.get(responseMsg, gmo);
-            //responseMsgData = responseMsg.readStringOfByteLength(responseMsg.getTotalMessageLength()).getBytes();
             getQueue.close();
 
             System.out.println("getMessageSimple: message recieved from " + getQueueName);

@@ -1,6 +1,8 @@
 package testPackage;
 
 import com.ibm.mq.MQMessage;
+import com.ibm.mq.headers.MQHeaderList;
+import com.ibm.mq.headers.MQRFH2;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import mqconnection.*;
@@ -91,31 +93,31 @@ public class TestSPM {
         */
         
         mqc.sendMessage("LOG.TO.DB", request);
-        mqc.sendMessage("LOG.TO.DB", request);
-        mqc.sendMessage("LOG.TO.DB", request);
-        mqc.sendMessage("LOG.TO.DB", request);
-        mqc.sendMessage("LOG.TO.DB", request);
         
         MQMessage response = mqc.getMessageSimple("LOG.TO.DB");
         
-        try {
-            System.out.println(response.getTotalMessageLength());
-            byte[] responseMsgData = response.readStringOfByteLength(response.getTotalMessageLength()).getBytes();
-            System.out.println(new String(responseMsgData));
-        } catch (Exception ex) {
-            System.out.println("fuck");
-        }
-        
-        response = mqc.getMessageSimple("LOG.TO.DB");
-        response = mqc.getMessageSimple("LOG.TO.DB");
+        System.out.println(mqc.messageToXML(response).toString());
         
         //System.out.println(response.toString());
         
         /*
         try {
-            System.out.println(request.getStringProperty("messageId"));
-            System.out.println(response.getStringProperty("messageId"));
+            MQHeaderList list = new MQHeaderList (request);
+            int index = list.indexOf ("MQRFH2");
+
+            if (index >= 0)
+            {
+                MQRFH2 rfh = (MQRFH2) list.get (index);
+            }
         } catch(Exception ex) {}
-                */
+        */
+                
+        try {
+            System.out.println(request.getStringProperty("msgid"));
+            System.out.println(response.getStringProperty("msgid"));
+            //System.out.println(response.getStringProperty("messageId"));
+        } catch(Exception ex) {
+        }
+                
     }
 }
