@@ -13,10 +13,6 @@ public class XMLMessage {
     private Document document = null;
     private String msgBody = null;
     
-    public XMLMessage() {
-        System.out.println("XMLMessage: empty constructor");
-    }
-    
     public XMLMessage(String msgBody) {
         try {
             this.msgBody = msgBody;
@@ -24,14 +20,7 @@ public class XMLMessage {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
             document = db.parse(source);
-            System.out.println("XMLMessage: new message has successfully parsed from string");
-        }
-        
-        // For JDK 1.7:
-        // catch (ParserConfigurationException | SAXException | IOException ex) {
-        
-        // For JDK 1.5:
-        catch (Exception ex) {
+        } catch (Exception ex) {
             System.out.println("XMLMessage: error");
             System.out.println(ex.toString());
         }
@@ -44,15 +33,9 @@ public class XMLMessage {
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(document), new StreamResult(writer));
-            msgBody = writer.getBuffer().toString().replaceAll("\n|\r", "");
+            msgBody = writer.getBuffer().toString();
         }
-        // For JDK 1.7:
-        //catch (IllegalArgumentException | TransformerException ex) {
-        
-        // For JDK 1.5:
         catch (Exception ex) {
-            System.out.println("XMLDocument.updateMsgBody(): error");
-            System.out.println("WARNING! msgBody has not updated!");
             System.out.println(ex.toString());
             throw new Exception("XMLDocument.updateMsgBody(): error. WARNING! msgBody has not updated!");
         }
@@ -63,7 +46,6 @@ public class XMLMessage {
             XPathFactory xpathFactory = XPathFactory.newInstance();
             XPath xpath = xpathFactory.newXPath();
             String value = xpath.evaluate(xpathToValue, document);
-            System.out.println("Value (" + xpathToValue + "): " + value);
             return value;
         }
         catch (XPathExpressionException ex) {
@@ -73,14 +55,26 @@ public class XMLMessage {
         }
     }
     
-    public boolean replaceXpathValue(String xpathToValue, String value) {
+    public boolean replaceXpathValue(String xPathExpression, String xPathValue) {
         try {
+            XPathFactory factory = XPathFactory.newInstance();
+            XPath xPath = factory.newXPath();
+            NodeList nodes = (NodeList) xPath.evaluate(xPathExpression, document, XPathConstants.NODESET);
+            
+            for (int k = 0; k < nodes.getLength(); k++)
+            {
+                System.out.println(nodes.item(k).getTextContent());  // Prints original value
+                nodes.item(k).setTextContent(xPathValue);
+                System.out.println(nodes.item(k).getTextContent());  // Prints 111 after
+            }
+            
             updateMsgBody();
+            return true;
         }
         catch (Exception ex) {
             System.out.println(ex.toString());
+            return false;
         }
-        return false;
     }
     
     @Override
