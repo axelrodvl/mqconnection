@@ -76,46 +76,19 @@ public class TestSPM {
             request.setStringProperty("senderroremail", senderroremail);
             request.setStringProperty("sendtobackout", sendtobackout);
         } catch (Exception ex) {}
-        /*
+        
         mqc.sendMessage("RU.CMX.MBRD.ADAPTER.SPM.PROCESSING.IN", request);
         
         sleep(1000);
         
-        //MQMessage response = mqc.getMessageSimple("RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN");
         MQMessage response = mqc.getMessageSimple("LOG.TO.DB");
-        
-        System.out.println("Marcellus");
-        
-        try {
-            byte[] responseMsgData = response.readStringOfByteLength(response.getTotalMessageLength()).getBytes();
-            System.out.println(new String(responseMsgData));
-        } catch (Exception ex) {}
-        */
-        
-        mqc.sendMessage("LOG.TO.DB", request);
-        
-        MQMessage response = mqc.getMessageSimple("LOG.TO.DB");
-        
+        response = mqc.getMessageSimple("LOG.TO.DB");
+        response = mqc.getMessageSimple("LOG.TO.DB");
         System.out.println(mqc.messageToXML(response).toString());
-        
-        //System.out.println(response.toString());
-        
-        /*
-        try {
-            MQHeaderList list = new MQHeaderList (request);
-            int index = list.indexOf ("MQRFH2");
-
-            if (index >= 0)
-            {
-                MQRFH2 rfh = (MQRFH2) list.get (index);
-            }
-        } catch(Exception ex) {}
-        */
                 
         try {
             System.out.println(request.getStringProperty("msgid"));
             System.out.println(response.getStringProperty("msgid"));
-            //System.out.println(response.getStringProperty("messageId"));
         } catch(Exception ex) {
         }
                 
