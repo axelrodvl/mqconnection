@@ -5,6 +5,9 @@ import xmlmessage.*;
 
 public class Main {
     public static void main(String[] args) {
+        TestSPM test = new TestSPM();
+        
+        /*
         MQConnection mqc = new MQConnection("WS084.TEST.QM", "localhost", 1420, "SYSTEM.DEF.SVRCONN");
         
         String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><TestingMQStubInput xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"InputFormat.xsd\">" +
@@ -38,5 +41,6 @@ public class Main {
         mqc.finalizeStaticConnection();
         
         mqc.closeConnection();
+        */
     }
 }

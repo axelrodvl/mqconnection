@@ -26,6 +26,19 @@ public class XMLMessage {
         }
     }
     
+    public XMLMessage(File fXmlFile) {
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            document = db.parse(fXmlFile);
+            document.getDocumentElement().normalize();
+            updateMsgBody();
+        } catch (Exception ex) {
+            System.out.println("XMLMessage: error");
+            System.out.println(ex.toString());
+        }
+    }
+    
     private void updateMsgBody() throws Exception {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
