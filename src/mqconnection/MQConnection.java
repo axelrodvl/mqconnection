@@ -6,30 +6,40 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MQConnection {
-    public class MQQueueConnection {
-        public MQQueue queue = null;
-        public String name = null;
-        public int openOptions = 0;
+    private class MQStaticConnection {
+        MQQueue putQueue = null;
+        MQQueue getQueue = null;
+        MQPutMessageOptions pmo = new MQPutMessageOptions();
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage requestMsg = new MQMessage();
+        MQMessage responseMsg = new MQMessage();
+        byte[] responseMsgData = null;
+        String msg = null; 
+        XMLMessage responseXmlMessage = null;
         
-        public MQQueueConnection(String queueName, int openOptions) {
+        public MQStaticConnection(String putQueueName, String getQueueName) {
             try {
-                this.name = queueName;
-                this.openOptions = openOptions;
-                queue = queueMgr.accessQueue(queueName, openOptions);  
-            }
-            catch (MQException ex) {
-                System.out.println("MQQueueConnection: error while starting connection");
-            }
+                putQueue = queueMgr.accessQueue(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
+                getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+                
+                pmo.options = MQC.MQPMO_NEW_MSG_ID; 
+                requestMsg.replyToQueueName = getQueueName;
+                requestMsg.report=MQC.MQRO_PASS_MSG_ID; 
+                requestMsg.format = MQC.MQFMT_STRING; 
+                requestMsg.messageType=MQC.MQMT_REQUEST; 
+                
+                gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID;
+                gmo.options=MQC.MQGMO_WAIT;
+                gmo.waitInterval=60000;
+            } catch (MQException ex) {}
         }
         
         public void closeConnection() {
             try {
-                queue.close();
-                queue = null;
+                putQueue.close();
+                getQueue.close();
             }
-            catch (MQException ex) {
-                System.out.println("MQQueueConnection: error while closing connection");
-            }
+            catch (Exception ex) {}
         }
     }
     
@@ -38,8 +48,7 @@ public class MQConnection {
     int queueMgrPort = 0;
     String queueMgrChannel = null; 
     MQQueueManager queueMgr = null;
-    MQQueueConnection getQueueOnce = null;
-    MQQueueConnection putQueueOnce = null;
+    MQStaticConnection sc = null;
     
     public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) {
         this.queueMgrName = queueMgrName;
@@ -181,64 +190,33 @@ public class MQConnection {
         }
     }
     
-    public void initGetResponseStaticConnection(String putQueueName, String getQueueName) {
-        putQueueOnce = new MQQueueConnection(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
-        getQueueOnce = new MQQueueConnection(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+    public void newStaticConnection(String putQueueName, String getQueueName) {
+        sc = new MQStaticConnection(putQueueName, getQueueName);
     }
     
-    public XMLMessage getResponseStaticConnection(XMLMessage requestXmlMessage) {
-        MQPutMessageOptions pmo = new MQPutMessageOptions();
-        MQGetMessageOptions gmo = new MQGetMessageOptions();
-        MQMessage requestMsg = new MQMessage();
-        MQMessage responseMsg = new MQMessage();
-        byte[] responseMsgData = null;
-        String msg = null;        
-        
+    public void makeTransactionStaticConnection(XMLMessage requestXmlMessage) {
+        System.out.println("New transaction");
+        // Request
         try {
-            pmo.options = MQC.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.
-            requestMsg.replyToQueueName = getQueueOnce.name; // the response should be put on this queue
-            requestMsg.report=MQC.MQRO_PASS_MSG_ID; //If a report or reply is generated as a result of this message, the MsgId of this message is copied to the MsgId of the report or reply message.
-            requestMsg.format = MQC.MQFMT_STRING; // Set message format. The application message data can be either an SBCS string (single-byte character set), or a DBCS string (double-byte character set). 
-            requestMsg.messageType=MQC.MQMT_REQUEST; // The message is one that requires a reply.
-            requestMsg.writeString(requestXmlMessage.toString()); // message payload
-            putQueueOnce.queue.put(requestMsg, pmo);
-            
-            System.out.println("getResponseStaticConnection: request message sent to " + putQueueOnce.name);
-        }
-        catch (Exception ex) {
-            System.out.println("getResponseStaticConnection: error while sending request");
-            System.out.println(ex.toString());
-            return null;
-        }
+            sc.requestMsg.writeString(requestXmlMessage.toString()); // message payload
+            sc.putQueue.put(sc.requestMsg, sc.pmo);
+            sc.requestMsg.clearMessage();
         
-        try {    
-            responseMsg.messageId = requestMsg.messageId; // The Id to be matched against when getting a message from a queue
-            //gmo.matchOptions=MQC.MQMO_MATCH_CORREL_ID; // The message to be retrieved must have a correlation identifier that matches the value of the CorrelId field in the MsgDesc parameter of the MQGET call.
-            gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID; // The message to be retrieved must have a correlation identifier that matches the value of the CorrelId field in the MsgDesc parameter of the MQGET call.
-            gmo.options=MQC.MQGMO_WAIT; // The application waits until a suitable message arrives.
-            gmo.waitInterval=60000; // timeout in ms
-            getQueueOnce.queue.get(responseMsg, gmo);
-            
-            // Check the message content
-            responseMsgData = responseMsg.readStringOfByteLength(responseMsg.getTotalMessageLength()).getBytes();
-            
-            System.out.println("getResponseStaticConnection: response message got from " + getQueueOnce.name);
-            
-            return new XMLMessage(new String(responseMsgData));
-        } 
-        // For JDK 1.7: catch(MQException | IOException ex) {
-        
-        // For JDK 1.5
-        catch(Exception ex) {
-            System.out.println("getResponseStaticConnection: error while getting response");
-            System.out.println(ex.toString());
-            return null;
-        }
+        } catch (Exception ex) {}
+        // Response
+        try {       
+            sc.responseMsg.messageId = sc.requestMsg.messageId;
+            sc.getQueue.get(sc.responseMsg, sc.gmo);
+            sc.responseMsgData = sc.responseMsg.readStringOfByteLength(sc.responseMsg.getTotalMessageLength()).getBytes();
+            sc.responseXmlMessage = new XMLMessage(new String(sc.responseMsgData));
+            sc.responseMsg.clearMessage();
+        } catch(Exception ex) {}
+        System.out.println("End. New transaction");
     }
     
-    public void finalizeGetResponseStaticConnection() {
-        getQueueOnce.closeConnection();
-        putQueueOnce.closeConnection();
+    public void finalizeStaticConnection() {
+        sc.closeConnection();
+        sc = null;
     }
     
     public void closeConnection() {
