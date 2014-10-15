@@ -111,6 +111,7 @@ public class MQConnection {
             pmo.options = MQC.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.            
             putQueue.put(message, pmo);
             putQueue.close();
+            
             System.out.println("sendMessageSingle: message sent to " + putQueueName);
             return true;
         } 
@@ -155,6 +156,31 @@ public class MQConnection {
         }
     }
     
+    public MQMessage browseMessageByRequest(String getQueueName, MQMessage request) {
+        MQQueue getQueue = null;
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        byte[] responseMsgData = null;
+        String msg = null;  
+        
+        try {
+            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_BROWSE | MQC.MQOO_INPUT_SHARED);
+            gmo.options = MQC.MQGMO_WAIT | MQC.MQGMO_BROWSE_NEXT ;
+            
+            responseMsg.messageId = request.messageId;
+            gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID;
+            
+            getQueue.get(responseMsg, gmo);
+            getQueue.close();
+
+            System.out.println("browseMessage: message browsed from " + getQueueName);
+
+            return responseMsg;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+    
     public MQMessage getMessageSimple(String getQueueName) {
         MQQueue getQueue = null;
         MQGetMessageOptions gmo = new MQGetMessageOptions();
@@ -164,6 +190,28 @@ public class MQConnection {
         
         try {
             getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+            getQueue.get(responseMsg, gmo);
+            getQueue.close();
+
+            System.out.println("getMessageSimple: message recieved from " + getQueueName);
+
+            return responseMsg;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+    
+    public MQMessage getMessageByRequest(String getQueueName, MQMessage request) {
+        MQQueue getQueue = null;
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        byte[] responseMsgData = null;
+        String msg = null;  
+        
+        try {
+            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+            responseMsg.messageId = request.messageId;
+            gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID;
             getQueue.get(responseMsg, gmo);
             getQueue.close();
 
