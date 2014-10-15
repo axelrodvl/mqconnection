@@ -147,7 +147,7 @@ public class MQConnection {
             getQueue.get(responseMsg, gmo);
             getQueue.close();
 
-            System.out.println("browseMessage: message recieved from " + getQueueName);
+            System.out.println("browseMessage: message browsed from " + getQueueName);
 
             return responseMsg;
         } catch (Exception ex) {

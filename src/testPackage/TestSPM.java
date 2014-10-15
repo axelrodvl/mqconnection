@@ -81,20 +81,51 @@ public class TestSPM {
         
         sleep(1000);
         
-        MQMessage response = mqc.getMessageSimple("LOG.TO.DB");
-        response = mqc.getMessageSimple("LOG.TO.DB");
-        response = mqc.getMessageSimple("LOG.TO.DB");
-        System.out.println(mqc.messageToXML(response).toString());
-                
+        MQMessage response = mqc.getMessageSimple("RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN");
+        XMLMessage responseXML = mqc.messageToXML(response);
+        
+        System.out.println(responseXML.toString());
+        
+        String correlId = responseXML.getXpathValue("/*[local-name()='afsRequest']/*[local-name()='correlationId']");
+        
+        System.out.println(correlId);
+        
+        MQMessage log1 = mqc.getMessageSimple("LOG.TO.DB");
+        MQMessage log2 = mqc.getMessageSimple("LOG.TO.DB");
+        MQMessage log3 = mqc.getMessageSimple("LOG.TO.DB");
+        
+        MQMessage correlMessage = mqc.browseMessage("RU.CMX.MBRD.UTIL.CORRELATIONQUEUE");
+        
         try {
-            System.out.println(request.getStringProperty("msgid"));
-            System.out.println(response.getStringProperty("msgid"));
+            System.out.println(correlMessage.getStringProperty("msgtype"));
+            System.out.println(correlMessage.getStringProperty("msgid"));
+            System.out.println(correlMessage.getStringProperty("procid"));
+            System.out.println(correlMessage.getStringProperty("senderroremail"));
+            System.out.println(correlMessage.getStringProperty("sendtobackout"));
         } catch(Exception ex) {
         }
         
-        MQMessage correlMessage = mqc.browseMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN");
-        System.out.println(mqc.messageToXML(correlMessage).toString());
-                
+        XMLMessage SPMresponse = new XMLMessage(new File("C:\\testFiles\\SPMresponse.xml"));
+        SPMresponse.replaceXpathValue("/*[local-name()='afsResponse']/*[local-name()='correlationId']", correlId);        
+        
+        System.out.println("Response to SPM:");
+        System.out.println(SPMresponse.toString());
+        
+        MQMessage responseToSPM = mqc.newMessage(SPMresponse);
+        mqc.sendMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.OUT", responseToSPM);
+        
+        sleep(100);
+        
+        MQMessage log4 = mqc.getMessageSimple("LOG.TO.DB");
+        MQMessage log5 = mqc.getMessageSimple("LOG.TO.DB");
+        
+        System.out.println(mqc.messageToXML(log5).toString());
+        
+        MQMessage responseToSystem = mqc.getMessageSimple("RU.CMX.MBRD.UTIL.MSGROUTER.IN");
+        
+        System.out.println("Total");
+        System.out.println(mqc.messageToXML(responseToSystem).toString());
+        
         //RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN 1
         //RU.CMX.MBRD.UTIL.CORRELATIONQUEUE 1
     }
