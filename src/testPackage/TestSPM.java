@@ -91,6 +91,11 @@ public class TestSPM {
             System.out.println(response.getStringProperty("msgid"));
         } catch(Exception ex) {
         }
+        
+        MQMessage correlMessage = mqc.browseMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN");
+        System.out.println(mqc.messageToXML(correlMessage).toString());
                 
+        //RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN 1
+        //RU.CMX.MBRD.UTIL.CORRELATIONQUEUE 1
     }
 }

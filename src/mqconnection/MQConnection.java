@@ -134,6 +134,27 @@ public class MQConnection {
         }
     }
     
+    public MQMessage browseMessage(String getQueueName) {
+        MQQueue getQueue = null;
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        byte[] responseMsgData = null;
+        String msg = null;  
+        
+        try {
+            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_BROWSE | MQC.MQOO_INPUT_SHARED);
+            gmo.options = MQC.MQGMO_WAIT | MQC.MQGMO_BROWSE_NEXT ;
+            getQueue.get(responseMsg, gmo);
+            getQueue.close();
+
+            System.out.println("browseMessage: message recieved from " + getQueueName);
+
+            return responseMsg;
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+    
     public MQMessage getMessageSimple(String getQueueName) {
         MQQueue getQueue = null;
         MQGetMessageOptions gmo = new MQGetMessageOptions();
@@ -143,15 +164,6 @@ public class MQConnection {
         
         try {
             getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
-            //responseMsg.messageId = requestMsg.messageId; // The Id to be matched against when getting a message from a queue
-            //gmo.matchOptions=MQC.MQMO_MATCH_CORREL_ID; // The message to be retrieved must have a correlation identifier that matches the value of the CorrelId field in the MsgDesc parameter of the MQGET call.
-            //gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID; // The message to be retrieved must have a correlation identifier that matches the value of the CorrelId field in the MsgDesc parameter of the MQGET call.
-            //gmo.options=MQC.MQGMO_WAIT; // The application waits until a suitable message arrives.
-            //gmo.waitInterval=60000; // timeout in ms
-            
-            //gmo.matchOptions = MQC.MQGMO_MSG_UNDER_CURSOR;
-            //gmo.matchOptions = MQC.MQGMO_BROWSE_FIRST;
-            
             getQueue.get(responseMsg, gmo);
             getQueue.close();
 
