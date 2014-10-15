@@ -129,5 +129,7 @@ public class TestSPM {
         
         //RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN 1
         //RU.CMX.MBRD.UTIL.CORRELATIONQUEUE 1
+        
+        mqc.closeConnection();
     }
 }
