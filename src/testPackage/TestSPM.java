@@ -9,7 +9,7 @@ import xmlmessage.*;
 
 
 public class TestSPM {
-    public String randomValue(int length) {
+    public static String randomValue(int length) {
         String result = "";
         int temp;
         for (int i = 0; i < length; ++i) {
@@ -19,7 +19,7 @@ public class TestSPM {
         return result;
     }
     
-    public void sleep(int sleepTimeInMs) {
+    public static void sleep(int sleepTimeInMs) {
         try {
             TimeUnit.MILLISECONDS.sleep(sleepTimeInMs);
         }

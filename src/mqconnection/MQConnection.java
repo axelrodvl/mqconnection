@@ -1,7 +1,7 @@
 package mqconnection;
 
 import com.ibm.mq.*;
-import com.ibm.mq.headers.MQRFH2;
+import com.ibm.mq.constants.MQConstants;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,25 +34,25 @@ public class MQConnection {
     public boolean clearQueue(String putQueueName) {
         int depth = 0;
         
-        try {
-           int openOptions = MQC.MQOO_INQUIRE;  
-           MQQueue queue = queueMgr.accessQueue(putQueueName, openOptions);  
-           depth = queue.getCurrentDepth();  
-           queue.close();
+        try {       
+            int openOptions = MQConstants.MQOO_INQUIRE;  
+            MQQueue queue = queueMgr.accessQueue(putQueueName, openOptions);  
+            depth = queue.getCurrentDepth();  
+            queue.close();
            
-           openOptions = MQC.MQOO_INPUT_AS_Q_DEF;
-           queue = queueMgr.accessQueue(putQueueName, openOptions);  
-           MQMessage message = new MQMessage();
+            openOptions = MQConstants.MQOO_INPUT_AS_Q_DEF;
+            queue = queueMgr.accessQueue(putQueueName, openOptions);  
+            MQMessage message = new MQMessage();
            
-           for (int i = 0; i < depth; ++i) {
-               queue.get(message);
-               //message.clearMessage();
-               message = null;
-               message = new MQMessage();
-           }
-           queue.close();  
-           System.out.println("Queue " + putQueueName + ": cleared");
-           return true;
+            for (int i = 0; i < depth; ++i) {
+                queue.get(message);
+                //message.clearMessage();
+                message = null;
+                message = new MQMessage();
+            }
+            queue.close();  
+            System.out.println("Queue " + putQueueName + ": cleared");
+            return true;
         } 
         catch (MQException ex) {  
             System.out.println("clearQueue(" + putQueueName + "): error");
@@ -65,17 +65,14 @@ public class MQConnection {
         MQQueue putQueue = null;
         MQPutMessageOptions pmo = new MQPutMessageOptions();
         try {
-            putQueue = queueMgr.accessQueue(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
-            pmo.options = MQC.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.            
+            putQueue = queueMgr.accessQueue(putQueueName, MQConstants.MQOO_BIND_NOT_FIXED | MQConstants.MQOO_OUTPUT);
+            pmo.options = MQConstants.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.            
             putQueue.put(message, pmo);
             putQueue.close();
             
             System.out.println("sendMessageSingle: message sent to " + putQueueName);
             return true;
         } 
-        // For JDK 1.7: catch(MQException | IOException ex) {
-        
-        // For JDK 1.5
         catch(Exception ex) {
             System.out.println("sendMessageSingle: error");
             System.out.println(ex.toString());
@@ -91,8 +88,8 @@ public class MQConnection {
         String msg = null;  
         
         try {
-            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_BROWSE | MQC.MQOO_INPUT_SHARED);
-            gmo.options = MQC.MQGMO_WAIT | MQC.MQGMO_BROWSE_NEXT ;
+            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_BROWSE | MQConstants.MQOO_INPUT_SHARED);
+            gmo.options = MQConstants.MQGMO_WAIT | MQConstants.MQGMO_BROWSE_NEXT ;
             getQueue.get(responseMsg, gmo);
             getQueue.close();
 
@@ -111,11 +108,11 @@ public class MQConnection {
         String msg = null;  
         
         try {
-            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_BROWSE | MQC.MQOO_INPUT_SHARED);
-            gmo.options = MQC.MQGMO_WAIT | MQC.MQGMO_BROWSE_NEXT ;
+            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_BROWSE | MQConstants.MQOO_INPUT_SHARED);
+            gmo.options = MQConstants.MQGMO_WAIT | MQConstants.MQGMO_BROWSE_NEXT ;
             
             responseMsg.messageId = request.messageId;
-            gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID;
+            gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
             
             getQueue.get(responseMsg, gmo);
             getQueue.close();
@@ -136,7 +133,7 @@ public class MQConnection {
         String msg = null;  
         
         try {
-            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
             
             getQueue.get(responseMsg, gmo);
             getQueue.close();
@@ -156,10 +153,10 @@ public class MQConnection {
         String msg = null;  
         
         try {
-            getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
 
             responseMsg.messageId = request.messageId;
-            gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID;
+            gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
 
             getQueue.get(responseMsg, gmo);
             getQueue.close();
@@ -175,9 +172,9 @@ public class MQConnection {
         try {
             MQMessage message = new MQMessage();
             message.replyToQueueName = "SOMEQUEUE";
-            message.report=MQC.MQRO_PASS_MSG_ID;
-            message.format = MQC.MQFMT_STRING;
-            message.messageType=MQC.MQMT_REQUEST;
+            message.report = MQConstants.MQRO_PASS_MSG_ID;
+            message.format = MQConstants.MQFMT_STRING;
+            message.messageType = MQConstants.MQMT_REQUEST;
             message.writeString(messageString);
             return message;
         } catch(Exception ex) {
