@@ -1,5 +1,6 @@
 package xmlmessage;
 
+import com.ibm.mq.MQMessage;
 import java.io.*;
 import javax.xml.parsers.*;
 import javax.xml.transform.*;
@@ -25,7 +26,6 @@ public class XMLMessage {
             System.out.println(ex.toString());
         }
     }
-    
     public XMLMessage(File fXmlFile) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -33,6 +33,24 @@ public class XMLMessage {
             document = db.parse(fXmlFile);
             document.getDocumentElement().normalize();
             updateMsgBody();
+        } catch (Exception ex) {
+            System.out.println("XMLMessage: error");
+            System.out.println(ex.toString());
+        }
+    }
+    public XMLMessage(MQMessage message) {
+        try {
+            byte[] data = new byte[message.getDataLength()];
+            message.readFully(data, 0, message.getDataLength());
+            String msgBody = new String(data);
+            
+            // If possible, it's needed to change next code to call constructor XMLMessage(String msgBody)
+            
+            this.msgBody = msgBody;
+            InputSource source = new InputSource(new StringReader(msgBody));
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            document = db.parse(source);
         } catch (Exception ex) {
             System.out.println("XMLMessage: error");
             System.out.println(ex.toString());
@@ -54,11 +72,11 @@ public class XMLMessage {
         }
     }
     
-    public String getXpathValue(String xpathToValue) {
+    public String getXpathValue(String xPathExpression) {
         try {
             XPathFactory xpathFactory = XPathFactory.newInstance();
             XPath xpath = xpathFactory.newXPath();
-            String value = xpath.evaluate(xpathToValue, document);
+            String value = xpath.evaluate(xPathExpression, document);
             return value;
         }
         catch (XPathExpressionException ex) {

@@ -66,7 +66,7 @@ public class TestSPM {
         SPMrequest_GXSD.replaceXpathValue("/*[local-name()='Execute']/*[local-name()='request']/*[local-name()='serviceData']/*[local-name()='processCode']", processCode);
         SPMrequest_GXSD.replaceXpathValue("/*[local-name()='Execute']/*[local-name()='systemSPRInfo']/*[local-name()='SPRProcessId']", SPRProcessId);
         
-        MQMessage request = mqc.newMessage(SPMrequest_GXSD);
+        MQMessage request = mqc.newMessage(SPMrequest_GXSD.toString());
         try {
             request.setStringProperty("msgtype", msgtype);
             request.setStringProperty("msgid", messageId);
@@ -85,8 +85,7 @@ public class TestSPM {
             System.out.println(response.getStringProperty("msgid"));
         } catch (Exception ex) {}
         
-        XMLMessage responseXML = mqc.messageToXML(response);
-        
+        XMLMessage responseXML = new XMLMessage(response);
         
         //System.out.println(responseXML.toString());
         
@@ -116,7 +115,7 @@ public class TestSPM {
         //System.out.println("Response to SPM:");
         //System.out.println(SPMresponse.toString());
         
-        MQMessage responseToSPM = mqc.newMessage(SPMresponse);
+        MQMessage responseToSPM = mqc.newMessage(SPMresponse.toString());
         mqc.sendMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.OUT", responseToSPM);
         
         sleep(100);
