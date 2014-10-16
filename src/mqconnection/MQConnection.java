@@ -1,9 +1,10 @@
 package mqconnection;
 
-import xmlmessage.XMLMessage;
 import com.ibm.mq.*;
+import com.ibm.mq.headers.MQRFH2;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import xmlmessage.XMLMessage;
 
 public class MQConnection {
     private class MQStaticConnection {
@@ -67,10 +68,6 @@ public class MQConnection {
             System.out.println("Error connecting to queue manager. Reason: " + ex.reasonCode);
             System.out.println(ex.getMessage());
         }
-    }
-    
-    public MQConnection() {
-        System.out.println("MQConnection. Empty constructor.");
     }
     
     public boolean clearQueue(String putQueueName) {
@@ -155,8 +152,7 @@ public class MQConnection {
             return null;
         }
     }
-    
-    public MQMessage browseMessageByRequest(String getQueueName, MQMessage request) {
+    public MQMessage browseMessage(String getQueueName, MQMessage request) {
         MQQueue getQueue = null;
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
@@ -181,7 +177,7 @@ public class MQConnection {
         }
     }
     
-    public MQMessage getMessageSimple(String getQueueName) {
+    public MQMessage getMessage(String getQueueName) {
         MQQueue getQueue = null;
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
@@ -190,6 +186,7 @@ public class MQConnection {
         
         try {
             getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+            
             getQueue.get(responseMsg, gmo);
             getQueue.close();
 
@@ -200,8 +197,7 @@ public class MQConnection {
             return null;
         }
     }
-    
-    public MQMessage getMessageByRequest(String getQueueName, MQMessage request) {
+    public MQMessage getMessage(String getQueueName, MQMessage request) {
         MQQueue getQueue = null;
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
@@ -210,13 +206,14 @@ public class MQConnection {
         
         try {
             getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
+
             responseMsg.messageId = request.messageId;
             gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID;
+
             getQueue.get(responseMsg, gmo);
             getQueue.close();
-
             System.out.println("getMessageSimple: message recieved from " + getQueueName);
-
+            
             return responseMsg;
         } catch (Exception ex) {
             return null;

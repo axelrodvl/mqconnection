@@ -1,8 +1,6 @@
 package testPackage;
 
 import com.ibm.mq.MQMessage;
-import com.ibm.mq.headers.MQHeaderList;
-import com.ibm.mq.headers.MQRFH2;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import mqconnection.*;
@@ -81,8 +79,14 @@ public class TestSPM {
         
         sleep(1000);
         
-        MQMessage response = mqc.getMessageSimple("RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN");
+        MQMessage response = mqc.getMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN");
+        
+        try {
+            System.out.println(response.getStringProperty("msgid"));
+        } catch (Exception ex) {}
+        
         XMLMessage responseXML = mqc.messageToXML(response);
+        
         
         //System.out.println(responseXML.toString());
         
@@ -90,9 +94,9 @@ public class TestSPM {
         
         //System.out.println(correlId);
         
-        MQMessage log1 = mqc.getMessageSimple("LOG.TO.DB");
-        MQMessage log2 = mqc.getMessageSimple("LOG.TO.DB");
-        MQMessage log3 = mqc.getMessageSimple("LOG.TO.DB");
+        MQMessage log1 = mqc.getMessage("LOG.TO.DB");
+        MQMessage log2 = mqc.getMessage("LOG.TO.DB");
+        MQMessage log3 = mqc.getMessage("LOG.TO.DB");
         
         MQMessage correlMessage = mqc.browseMessage("RU.CMX.MBRD.UTIL.CORRELATIONQUEUE");
         
@@ -117,12 +121,25 @@ public class TestSPM {
         
         sleep(100);
         
-        MQMessage log4 = mqc.getMessageSimple("LOG.TO.DB");
-        MQMessage log5 = mqc.getMessageSimple("LOG.TO.DB");
+        MQMessage log4 = mqc.getMessage("LOG.TO.DB");
+        MQMessage log5 = mqc.getMessage("LOG.TO.DB");
         
         //System.out.println(mqc.messageToXML(log5).toString());
         
-        MQMessage responseToSystem = mqc.getMessageSimple("RU.CMX.MBRD.UTIL.MSGROUTER.IN");
+        //MQMessage responseToSystem = mqc.getMessage("RU.CMX.MBRD.UTIL.MSGROUTER.IN", request);
+        MQMessage responseToSystem = mqc.getMessage("RU.CMX.MBRD.UTIL.MSGROUTER.IN");
+        
+        /*
+        try {
+            MQRFH2 rfh2 = new MQRFH2(responseToSystem);
+            //String msgidInMessage = (String) rfh2.getFieldValue("usr", "msgid");
+            //System.out.println(msgidInMessage);
+        } catch (Exception ex) {}
+        */
+                
+        try {
+            System.out.println(responseToSystem.getStringProperty("msgid"));
+        } catch (Exception ex) {}
         
         //System.out.println("Total");
         //System.out.println(mqc.messageToXML(responseToSystem).toString());
