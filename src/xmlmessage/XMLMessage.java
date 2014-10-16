@@ -14,13 +14,42 @@ public class XMLMessage {
     private Document document = null;
     private String msgBody = null;
     
-    public XMLMessage(String msgBody) {
+    private void updateMsgBody() throws Exception {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(document), new StreamResult(writer));
+            msgBody = writer.getBuffer().toString();
+        }
+        catch (Exception ex) {
+            System.out.println(ex.toString());
+            throw new Exception("XMLDocument.updateMsgBody(): error. WARNING! msgBody has not updated!");
+        }
+    }
+    private void XMLMessageFetchString(String msgBody) {
         try {
             this.msgBody = msgBody;
             InputSource source = new InputSource(new StringReader(msgBody));
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
             document = db.parse(source);
+        } catch (Exception ex) {
+            System.out.println("XMLMessage: error");
+            System.out.println(ex.toString());
+        }
+    }
+    public XMLMessage(String msgBody) {
+        XMLMessageFetchString(msgBody);
+    }
+    public XMLMessage(MQMessage message) {
+        try {
+            byte[] data = new byte[message.getDataLength()];
+            message.readFully(data, 0, message.getDataLength());
+            String msgBody = new String(data);
+            
+            XMLMessageFetchString(msgBody);
         } catch (Exception ex) {
             System.out.println("XMLMessage: error");
             System.out.println(ex.toString());
@@ -36,39 +65,6 @@ public class XMLMessage {
         } catch (Exception ex) {
             System.out.println("XMLMessage: error");
             System.out.println(ex.toString());
-        }
-    }
-    public XMLMessage(MQMessage message) {
-        try {
-            byte[] data = new byte[message.getDataLength()];
-            message.readFully(data, 0, message.getDataLength());
-            String msgBody = new String(data);
-            
-            // If possible, it's needed to change next code to call constructor XMLMessage(String msgBody)
-            
-            this.msgBody = msgBody;
-            InputSource source = new InputSource(new StringReader(msgBody));
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            document = db.parse(source);
-        } catch (Exception ex) {
-            System.out.println("XMLMessage: error");
-            System.out.println(ex.toString());
-        }
-    }
-    
-    private void updateMsgBody() throws Exception {
-        try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            StringWriter writer = new StringWriter();
-            transformer.transform(new DOMSource(document), new StreamResult(writer));
-            msgBody = writer.getBuffer().toString();
-        }
-        catch (Exception ex) {
-            System.out.println(ex.toString());
-            throw new Exception("XMLDocument.updateMsgBody(): error. WARNING! msgBody has not updated!");
         }
     }
     
