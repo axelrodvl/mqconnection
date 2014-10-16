@@ -77,7 +77,7 @@ public class TestSPM {
         
         mqc.sendMessage("RU.CMX.MBRD.ADAPTER.SPM.PROCESSING.IN", request);
         
-        sleep(1000);
+        sleep(100);
         
         MQMessage response = mqc.getMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN");
         
