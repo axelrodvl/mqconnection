@@ -6,8 +6,6 @@ import java.util.concurrent.TimeUnit;
 import mqconnection.*;
 import xmlmessage.*;
 
-
-
 public class TestSPM {
     public static String randomValue(int length) {
         String result = "";
@@ -87,11 +85,11 @@ public class TestSPM {
         
         XMLMessage responseXML = new XMLMessage(response);
         
-        //System.out.println(responseXML.toString());
+        System.out.println(responseXML.toString());
         
         String correlId = responseXML.getXpathValue("/*[local-name()='afsRequest']/*[local-name()='correlationId']");
         
-        //System.out.println(correlId);
+        System.out.println("correlId = " + correlId);
         
         MQMessage log1 = mqc.getMessage("LOG.TO.DB");
         MQMessage log2 = mqc.getMessage("LOG.TO.DB");
@@ -99,21 +97,20 @@ public class TestSPM {
         
         MQMessage correlMessage = mqc.browseMessage("RU.CMX.MBRD.UTIL.CORRELATIONQUEUE");
         
-        /*
         try {
-            System.out.println(correlMessage.getStringProperty("msgtype"));
-            System.out.println(correlMessage.getStringProperty("msgid"));
-            System.out.println(correlMessage.getStringProperty("procid"));
-            System.out.println(correlMessage.getStringProperty("senderroremail"));
-            System.out.println(correlMessage.getStringProperty("sendtobackout"));
+            System.out.println("msgtype = " + correlMessage.getStringProperty("msgtype"));
+            System.out.println("msgid = " + correlMessage.getStringProperty("msgid"));
+            System.out.println("procid = " + correlMessage.getStringProperty("procid"));
+            System.out.println("senderroremail = " + correlMessage.getStringProperty("senderroremail"));
+            System.out.println("sendtobackout = " + correlMessage.getStringProperty("sendtobackout"));
         } catch(Exception ex) {
-        }*/
+        }
         
         XMLMessage SPMresponse = new XMLMessage(new File("C:\\testFiles\\SPMresponse.xml"));
         SPMresponse.replaceXpathValue("/*[local-name()='afsResponse']/*[local-name()='correlationId']", correlId);        
         
-        //System.out.println("Response to SPM:");
-        //System.out.println(SPMresponse.toString());
+        System.out.println("Response to SPM:");
+        System.out.println(SPMresponse.toString());
         
         MQMessage responseToSPM = mqc.newMessage(SPMresponse.toString());
         mqc.sendMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.OUT", responseToSPM);
@@ -123,28 +120,14 @@ public class TestSPM {
         MQMessage log4 = mqc.getMessage("LOG.TO.DB");
         MQMessage log5 = mqc.getMessage("LOG.TO.DB");
         
-        //System.out.println(mqc.messageToXML(log5).toString());
-        
-        //MQMessage responseToSystem = mqc.getMessage("RU.CMX.MBRD.UTIL.MSGROUTER.IN", request);
         MQMessage responseToSystem = mqc.getMessage("RU.CMX.MBRD.UTIL.MSGROUTER.IN");
-        
-        /*
-        try {
-            MQRFH2 rfh2 = new MQRFH2(responseToSystem);
-            //String msgidInMessage = (String) rfh2.getFieldValue("usr", "msgid");
-            //System.out.println(msgidInMessage);
-        } catch (Exception ex) {}
-        */
                 
         try {
             System.out.println(responseToSystem.getStringProperty("msgid"));
         } catch (Exception ex) {}
         
-        //System.out.println("Total");
-        //System.out.println(mqc.messageToXML(responseToSystem).toString());
-        
-        //RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN 1
-        //RU.CMX.MBRD.UTIL.CORRELATIONQUEUE 1
+        System.out.println("Total");
+        System.out.println(new XMLMessage(responseToSystem).toString());
         
         mqc.closeConnection();
     }
