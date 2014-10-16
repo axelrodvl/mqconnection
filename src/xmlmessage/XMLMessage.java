@@ -72,8 +72,7 @@ public class XMLMessage {
         try {
             XPathFactory xpathFactory = XPathFactory.newInstance();
             XPath xpath = xpathFactory.newXPath();
-            String value = xpath.evaluate(xPathExpression, document);
-            return value;
+            return xpath.evaluate(xPathExpression, document);
         }
         catch (XPathExpressionException ex) {
             System.out.println("getXpathValue: error");
