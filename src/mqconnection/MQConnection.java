@@ -7,49 +7,11 @@ import java.util.logging.Logger;
 import xmlmessage.XMLMessage;
 
 public class MQConnection {
-    private class MQStaticConnection {
-        MQQueue putQueue = null;
-        MQQueue getQueue = null;
-        MQPutMessageOptions pmo = new MQPutMessageOptions();
-        MQGetMessageOptions gmo = new MQGetMessageOptions();
-        MQMessage requestMsg = new MQMessage();
-        MQMessage responseMsg = new MQMessage();
-        byte[] responseMsgData = null;
-        String msg = null; 
-        XMLMessage responseXmlMessage = null;
-        
-        public MQStaticConnection(String putQueueName, String getQueueName) {
-            try {
-                putQueue = queueMgr.accessQueue(putQueueName, MQC.MQOO_BIND_NOT_FIXED | MQC.MQOO_OUTPUT);
-                getQueue = queueMgr.accessQueue(getQueueName, MQC.MQOO_INPUT_AS_Q_DEF | MQC.MQOO_OUTPUT);
-                
-                pmo.options = MQC.MQPMO_NEW_MSG_ID; 
-                requestMsg.replyToQueueName = getQueueName;
-                requestMsg.report=MQC.MQRO_PASS_MSG_ID; 
-                requestMsg.format = MQC.MQFMT_STRING; 
-                requestMsg.messageType=MQC.MQMT_REQUEST; 
-                
-                gmo.matchOptions=MQC.MQMO_MATCH_MSG_ID;
-                gmo.options=MQC.MQGMO_WAIT;
-                gmo.waitInterval=60000;
-            } catch (MQException ex) {}
-        }
-        
-        public void closeConnection() {
-            try {
-                putQueue.close();
-                getQueue.close();
-            }
-            catch (Exception ex) {}
-        }
-    }
-    
     String queueMgrName = null;
     String queueMgrHostname = null;
     int queueMgrPort = 0;
     String queueMgrChannel = null; 
     MQQueueManager queueMgr = null;
-    MQStaticConnection sc = null;
     
     public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) {
         this.queueMgrName = queueMgrName;
@@ -276,33 +238,6 @@ public class MQConnection {
             System.out.println(ex.toString());
             return null;
         }
-    }
-    
-    public void newStaticConnection(String putQueueName, String getQueueName) {
-        sc = new MQStaticConnection(putQueueName, getQueueName);
-    }
-    
-    public void makeTransactionStaticConnection(XMLMessage requestXmlMessage) {
-        // Request
-        try {
-            sc.requestMsg.writeString(requestXmlMessage.toString()); // message payload
-            sc.putQueue.put(sc.requestMsg, sc.pmo);
-            sc.requestMsg.clearMessage();
-        
-        } catch (Exception ex) {}
-        // Response
-        try {       
-            sc.responseMsg.messageId = sc.requestMsg.messageId;
-            sc.getQueue.get(sc.responseMsg, sc.gmo);
-            sc.responseMsgData = sc.responseMsg.readStringOfByteLength(sc.responseMsg.getTotalMessageLength()).getBytes();
-            sc.responseXmlMessage = new XMLMessage(new String(sc.responseMsgData));
-            sc.responseMsg.clearMessage();
-        } catch(Exception ex) {}
-    }
-    
-    public void finalizeStaticConnection() {
-        sc.closeConnection();
-        sc = null;
     }
     
     public MQMessage newMessage(XMLMessage xmlMessage) {
