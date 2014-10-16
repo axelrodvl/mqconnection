@@ -16,7 +16,9 @@ public class TestSPM {
         }
         return result;
     }
-    
+    public static String randomUUID() {
+        return java.util.UUID.randomUUID().toString();
+    }
     public static void sleep(int sleepTimeInMs) {
         try {
             TimeUnit.MILLISECONDS.sleep(sleepTimeInMs);
@@ -53,7 +55,7 @@ public class TestSPM {
         XMLMessage SPMrequest_GXSD = new XMLMessage(new File("C:\\testFiles\\GXSD_MainToSPM.xml"));
         
         String moduleCode = "SPM";
-        String SPRProcessId = java.util.UUID.randomUUID().toString();
+        String SPRProcessId = randomUUID();
         String processCode = randomValue(10);
         String messageId = randomValue(10);
         String senderroremail = "true";
