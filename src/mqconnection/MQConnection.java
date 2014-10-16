@@ -191,29 +191,4 @@ public class MQConnection {
         }
         queueMgr = null;
     }
-        
-    @Override
-    protected void finalize()
-    { 
-        try {
-            queueMgr.close();
-            
-            queueMgrName = null;
-            queueMgrHostname = null;
-            queueMgrPort = 0;
-            queueMgrChannel = null; 
-            queueMgr = null;
-            
-            
-        }
-        catch (MQException ex) {
-        }
-        
-        try {
-            super.finalize();
-        }
-        catch (Throwable ex) {
-            Logger.getLogger(MQConnection.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
 }
