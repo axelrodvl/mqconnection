@@ -13,11 +13,15 @@ import org.xml.sax.*;
 public class XMLMessage {
     private Document document = null;
     private String msgBody = null;
+
+    private XPathFactory xpathFactory = XPathFactory.newInstance();
+    private TransformerFactory transformerFactory = TransformerFactory.newInstance();
+    private DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+    private XPath xpath = xpathFactory.newXPath();
     
     private void updateMsgBody() throws Exception {
         try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
+            Transformer transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(document), new StreamResult(writer));
@@ -28,72 +32,62 @@ public class XMLMessage {
             throw new Exception("XMLDocument.updateMsgBody(): error. WARNING! msgBody has not updated!");
         }
     }
+    
     private void XMLMessageFetchString(String msgBody) {
         try {
-            this.msgBody = msgBody;
             InputSource source = new InputSource(new StringReader(msgBody));
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
+            DocumentBuilder db = documentBuilderFactory.newDocumentBuilder();
             document = db.parse(source);
+            this.msgBody = msgBody;
         } catch (Exception ex) {
-            System.out.println("XMLMessage: error");
             System.out.println(ex.toString());
         }
     }
+    
     public XMLMessage(String msgBody) {
         XMLMessageFetchString(msgBody);
     }
+    
     public XMLMessage(MQMessage message) {
         try {
             byte[] data = new byte[message.getDataLength()];
             message.readFully(data, 0, message.getDataLength());
-            String msgBody = new String(data);
-            
-            XMLMessageFetchString(msgBody);
+            XMLMessageFetchString(new String(data));
         } catch (Exception ex) {
-            System.out.println("XMLMessage: error");
             System.out.println(ex.toString());
         }
     }
+    
     public XMLMessage(File fXmlFile) {
         try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
+            DocumentBuilder db = documentBuilderFactory.newDocumentBuilder();
             document = db.parse(fXmlFile);
             document.getDocumentElement().normalize();
             updateMsgBody();
         } catch (Exception ex) {
-            System.out.println("XMLMessage: error");
             System.out.println(ex.toString());
         }
     }
     
     public String getXpathValue(String xPathExpression) {
         try {
-            XPathFactory xpathFactory = XPathFactory.newInstance();
-            XPath xpath = xpathFactory.newXPath();
             return xpath.evaluate(xPathExpression, document);
         }
         catch (XPathExpressionException ex) {
-            System.out.println("getXpathValue: error");
             System.out.println(ex.toString());
             return null;
         }
-    }
+    }   
     
     public boolean replaceXpathValue(String xPathExpression, String xPathValue) {
         try {
-            XPathFactory factory = XPathFactory.newInstance();
-            XPath xPath = factory.newXPath();
-            NodeList nodes = (NodeList) xPath.evaluate(xPathExpression, document, XPathConstants.NODESET);
-            
+            NodeList nodes = (NodeList) xpath.evaluate(xPathExpression, document, XPathConstants.NODESET);
             for (int k = 0; k < nodes.getLength(); k++)
             {
                 //System.out.println(nodes.item(k).getTextContent());  // Prints original value
                 nodes.item(k).setTextContent(xPathValue);
                 //System.out.println(nodes.item(k).getTextContent());  // Prints 111 after
             }
-            
             updateMsgBody();
             return true;
         }
