@@ -6,11 +6,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MQConnection {
-    String queueMgrName = null;
-    String queueMgrHostname = null;
-    int queueMgrPort = 0;
-    String queueMgrChannel = null; 
-    MQQueueManager queueMgr = null;
+    private String queueMgrName = null;
+    private String queueMgrHostname = null;
+    private int queueMgrPort = 0;
+    private String queueMgrChannel = null; 
+    public MQQueueManager queueMgr = null;
     
     public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) {
         this.queueMgrName = queueMgrName;
