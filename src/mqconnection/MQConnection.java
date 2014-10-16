@@ -2,8 +2,6 @@ package mqconnection;
 
 import com.ibm.mq.*;
 import com.ibm.mq.constants.MQConstants;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class MQConnection {
     private String queueMgrName = null;
