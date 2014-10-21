@@ -10,7 +10,13 @@ import static testHandler.Test.sleep;
 import xmlmessage.XMLMessage;
 
 public class SPM extends Test {
+    public SPM() {
+        testName = "SPMTest";
+        testDescription = "SPM Test Description";
+    }
+    
     public void init() throws Exception {
+        
     }
     public void action() throws Exception {
         MQConnection mqc = new MQConnection("SPR2.QM", "vm-spr-01", 1420, "SYSTEM.DEF.SVRCONN");
@@ -52,8 +58,8 @@ public class SPM extends Test {
         SPMrequest_GXSD.replaceXpathValue("/*[local-name()='Execute']/*[local-name()='request']/*[local-name()='serviceData']/*[local-name()='processCode']", processCode);
         SPMrequest_GXSD.replaceXpathValue("/*[local-name()='Execute']/*[local-name()='systemSPRInfo']/*[local-name()='SPRProcessId']", SPRProcessId);
         
-        System.out.println("Request: ");
-        System.out.println(SPMrequest_GXSD.toString());
+        //System.out.println("Request: ");
+        //System.out.println(SPMrequest_GXSD.toString());
         
         MQMessage request = mqc.newMessage(SPMrequest_GXSD.toString());
         
@@ -69,15 +75,15 @@ public class SPM extends Test {
         
         MQMessage response = mqc.getMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.IN");
         
-        System.out.println(response.getStringProperty("msgid"));
+        //System.out.println(response.getStringProperty("msgid"));
         
         XMLMessage responseXML = new XMLMessage(response);
         
-        System.out.println(responseXML.toString());
+        //System.out.println(responseXML.toString());
         
         String correlId = responseXML.getXpathValue("/*[local-name()='afsRequest']/*[local-name()='correlationId']");
         
-        System.out.println("correlId = " + correlId);
+        //System.out.println("correlId = " + correlId);
         
         MQMessage log1 = mqc.getMessage("LOG.TO.DB");
         MQMessage log2 = mqc.getMessage("LOG.TO.DB");
@@ -85,17 +91,17 @@ public class SPM extends Test {
         
         MQMessage correlMessage = mqc.browseMessage("RU.CMX.MBRD.UTIL.CORRELATIONQUEUE");
         
-        System.out.println("msgtype = " + correlMessage.getStringProperty("msgtype"));
-        System.out.println("msgid = " + correlMessage.getStringProperty("msgid"));
-        System.out.println("procid = " + correlMessage.getStringProperty("procid"));
-        System.out.println("senderroremail = " + correlMessage.getStringProperty("senderroremail"));
-        System.out.println("sendtobackout = " + correlMessage.getStringProperty("sendtobackout"));
+        //System.out.println("msgtype = " + correlMessage.getStringProperty("msgtype"));
+        //System.out.println("msgid = " + correlMessage.getStringProperty("msgid"));
+        //System.out.println("procid = " + correlMessage.getStringProperty("procid"));
+        //System.out.println("senderroremail = " + correlMessage.getStringProperty("senderroremail"));
+        //System.out.println("sendtobackout = " + correlMessage.getStringProperty("sendtobackout"));
         
         XMLMessage SPMresponse = new XMLMessage(new File("C:\\testFiles\\SPMresponse.xml"));
         SPMresponse.replaceXpathValue("/*[local-name()='afsResponse']/*[local-name()='correlationId']", correlId);        
         
-        System.out.println("Response to SPM:");
-        System.out.println(SPMresponse.toString());
+        //System.out.println("Response to SPM:");
+        //System.out.println(SPMresponse.toString());
         
         MQMessage responseToSPM = mqc.newMessage(SPMresponse.toString());
         mqc.sendMessage("RU.CMX.MBRD.FACADE.SPM.PROCESSING.OUT", responseToSPM);
@@ -107,14 +113,13 @@ public class SPM extends Test {
         
         MQMessage responseToSystem = mqc.getMessage("RU.CMX.MBRD.UTIL.MSGROUTER.IN");
                 
-        System.out.println(responseToSystem.getStringProperty("msgid"));
+        //System.out.println(responseToSystem.getStringProperty("msgid"));
         
-        System.out.println("Total");
-        System.out.println(new XMLMessage(responseToSystem).toString());
+        //System.out.println("Total");
+        //System.out.println(new XMLMessage(responseToSystem).toString());
         
         mqc.closeConnection();
-    }
-    
+    } 
     public void end() throws Exception {
     }
 }
