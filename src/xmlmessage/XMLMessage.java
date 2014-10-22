@@ -2,10 +2,14 @@ package xmlmessage;
 
 import com.ibm.mq.MQMessage;
 import java.io.*;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
 import javax.xml.xpath.*;
 import org.w3c.dom.*;
 import org.xml.sax.*;
@@ -95,6 +99,21 @@ public class XMLMessage {
             System.out.println(ex.toString());
             return false;
         }
+    }
+    
+    public boolean validate(File fXsdFile) {
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        try {
+            Schema schema = schemaFactory.newSchema(fXsdFile);
+            Validator validator = schema.newValidator();
+            validator.validate(new DOMSource(document));
+            System.out.println("Document is valid");
+        } catch (Exception ex) {
+            System.out.println("Document is NOT valid");
+            System.out.println("Reason: " + ex.toString());
+        }
+        
+        return false;
     }
     
     @Override

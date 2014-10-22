@@ -49,7 +49,7 @@ public class MQConnection {
                 message = new MQMessage();
             }
             queue.close();  
-            System.out.println("Queue " + putQueueName + ": cleared");
+            //System.out.println("Queue " + putQueueName + ": cleared");
             return true;
         } 
         catch (MQException ex) {  
@@ -68,7 +68,7 @@ public class MQConnection {
             putQueue.put(message, pmo);
             putQueue.close();
             
-            System.out.println("sendMessageSingle: message sent to " + putQueueName);
+            //System.out.println("sendMessageSingle: message sent to " + putQueueName);
             return true;
         } 
         catch(Exception ex) {
@@ -91,7 +91,7 @@ public class MQConnection {
             getQueue.get(responseMsg, gmo);
             getQueue.close();
 
-            System.out.println("browseMessage: message browsed from " + getQueueName);
+            //System.out.println("browseMessage: message browsed from " + getQueueName);
 
             return responseMsg;
         } catch (Exception ex) {
@@ -115,7 +115,7 @@ public class MQConnection {
             getQueue.get(responseMsg, gmo);
             getQueue.close();
 
-            System.out.println("browseMessage: message browsed from " + getQueueName);
+            //System.out.println("browseMessage: message browsed from " + getQueueName);
 
             return responseMsg;
         } catch (Exception ex) {
@@ -136,7 +136,7 @@ public class MQConnection {
             getQueue.get(responseMsg, gmo);
             getQueue.close();
 
-            System.out.println("getMessageSimple: message recieved from " + getQueueName);
+            //System.out.println("getMessageSimple: message recieved from " + getQueueName);
 
             return responseMsg;
         } catch (Exception ex) {
@@ -158,7 +158,7 @@ public class MQConnection {
 
             getQueue.get(responseMsg, gmo);
             getQueue.close();
-            System.out.println("getMessageSimple: message recieved from " + getQueueName);
+            //System.out.println("getMessageSimple: message recieved from " + getQueueName);
             
             return responseMsg;
         } catch (Exception ex) {

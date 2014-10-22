@@ -1,16 +1,17 @@
-package testHandler;
+    package testHandler;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 
 public class TestHandler {
     public ArrayList<Test> suite = new ArrayList<Test>();
     public DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
     Calendar timeStart = null;
     Calendar timeStop = null;
+    Calendar suiteTimeStart = null;
+    Calendar suiteTimeStop = null;
     
     public static long getDiffInMillis(Calendar c1, Calendar c2)
     {
@@ -38,6 +39,7 @@ public class TestHandler {
             timeStop = Calendar.getInstance();
             System.out.println("Time stop: " + timeStop.getTime());
             System.out.println("Time elapsed:" + getDiffInMillis(timeStart, timeStop) + " ms");
+            System.out.println("TestHandler. Test " + test.testName + " completed");
             return true;
         } catch (Exception ex) {
             System.out.println(ex);
@@ -49,6 +51,9 @@ public class TestHandler {
     
     public boolean startSuite() {
         System.out.println("TestHandler. Suite: started");
+        suiteTimeStart = Calendar.getInstance();
+        System.out.println("Suite. Time start: " + suiteTimeStart.getTime());
+        
         boolean result = true;
         for (Test test : suite) {
             result = result && startTest(test);
@@ -59,6 +64,10 @@ public class TestHandler {
             System.out.println("TestHandler. Suite: FAILED");
         }
         
+        suiteTimeStop = Calendar.getInstance();
+        System.out.println("Suite. Time stop: " + suiteTimeStop.getTime());
+        System.out.println("Suite. Time elapsed:" + getDiffInMillis(suiteTimeStart, suiteTimeStop) + " ms");
+        System.out.println("Suite. Average time: " + (getDiffInMillis(suiteTimeStart, suiteTimeStop) / suite.size()) + " ms");
         
         return result;
     }
