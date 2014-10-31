@@ -5,7 +5,8 @@ import testHandler.*;
 import testPackage.*;
 import xmlmessage.*;
 
-public class Work {
+public class Work { 
+    
     public static void main(String[] args) {
         //TestHandler th = new TestHandler();
         
@@ -15,6 +16,7 @@ public class Work {
         //th.startSuite();
         
         
+        /*
         XMLMessage xmlMessage = new XMLMessage(new File("C:\\testFiles\\xmlMessage\\MQInput.xml"));
         System.out.println(xmlMessage);
         
@@ -33,5 +35,6 @@ public class Work {
         System.out.println("");
         
         xmlMessage.validate(new File("C:\\testFiles\\xmlMessage\\InputFormat.xsd"));
+                */
     }
 }

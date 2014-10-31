@@ -44,6 +44,7 @@ public class XMLMessage {
             document = db.parse(source);
             this.msgBody = msgBody;
         } catch (Exception ex) {
+            System.out.println("Error while XMLMessageFetchString");
             System.out.println(ex.toString());
         }
     }
@@ -58,6 +59,7 @@ public class XMLMessage {
             message.readFully(data, 0, message.getDataLength());
             XMLMessageFetchString(new String(data));
         } catch (Exception ex) {
+            System.out.println("Error while XMLMessage constructor");
             System.out.println(ex.toString());
         }
     }
@@ -69,6 +71,7 @@ public class XMLMessage {
             document.getDocumentElement().normalize();
             updateMsgBody();
         } catch (Exception ex) {
+            System.out.println("Error while XMLMessage constructor");
             System.out.println(ex.toString());
         }
     }
@@ -78,6 +81,7 @@ public class XMLMessage {
             return xpath.evaluate(xPathExpression, document);
         }
         catch (XPathExpressionException ex) {
+            System.out.println("Error while getXpathValue");
             System.out.println(ex.toString());
             return null;
         }
@@ -96,6 +100,7 @@ public class XMLMessage {
             return true;
         }
         catch (Exception ex) {
+            System.out.println("Error while replaceXpathValue");
             System.out.println(ex.toString());
             return false;
         }
@@ -115,6 +120,29 @@ public class XMLMessage {
         
         return false;
     }
+    
+    /*
+    public static boolean assertXML(XMLMessage xml1, XMLMessage xml2) {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        dbf.setCoalescing(true);
+        dbf.setIgnoringElementContentWhitespace(true);
+        dbf.setIgnoringComments(true);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+
+        //Document doc1 = db.parse(new File("file1.xml"));
+        //doc1.normalizeDocument();
+        Document doc1 = xml1.document;
+        doc1.normalizeDocument();
+
+        Document doc2 = xml2.document;
+        doc2.normalizeDocument();
+
+        Assert.assertTrue(doc1.isEqualNode(doc2));
+        
+        return true;
+    }
+    */
     
     @Override
     public String toString() {
