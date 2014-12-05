@@ -347,7 +347,22 @@ public class MQConnection {
         gmo.options = MQConstants.MQGMO_WAIT;
         gmo.waitInterval = timeout;
         responseMsg.messageId = request.messageId;
-        gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
+        gmo.matchOptions = MQConstants.MQMO_MATCH_MSG_ID;
+        getQueue.get(responseMsg, gmo);          
+        printLog("getMessage: message recieved from " + getQueue.name + " with settings from request");            
+        return responseMsg;
+    }
+    
+    /**
+     * Getting message in queue with request messageId and chosen timeout
+     * @param getQueueName
+     * @param request
+     * @param timeout
+     * @return 
+     */
+    public MQMessage getMessage(MQQueue getQueue, MQMessage request, MQGetMessageOptions gmo) throws Exception {
+        MQMessage responseMsg = new MQMessage();
+        responseMsg.messageId = request.messageId;
         getQueue.get(responseMsg, gmo);          
         printLog("getMessage: message recieved from " + getQueue.name + " with settings from request");            
         return responseMsg;
