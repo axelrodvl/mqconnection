@@ -10,10 +10,6 @@ import com.ibm.mq.constants.MQConstants;
  */
 public class MQConnection {
     private boolean loggingEnabled = false;
-    private String queueMgrName = null;
-    private String queueMgrHostname = null;
-    private int queueMgrPort = 0;
-    private String queueMgrChannel = null; 
     public MQQueueManager queueMgr = null;
     
     /**
@@ -68,15 +64,9 @@ public class MQConnection {
      * @param queueMgrChannel 
      */
     public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) throws Exception {
-        this.queueMgrName = queueMgrName;
-        this.queueMgrHostname = queueMgrHostname;
-        this.queueMgrPort = queueMgrPort;
-        this.queueMgrChannel = queueMgrChannel;
-        
-        MQEnvironment.hostname = this.queueMgrHostname;
-        MQEnvironment.port = this.queueMgrPort;
-        MQEnvironment.channel = this.queueMgrChannel;
-        
+        MQEnvironment.hostname = queueMgrHostname;
+        MQEnvironment.port = queueMgrPort;
+        MQEnvironment.channel = queueMgrChannel;
         queueMgr = new MQQueueManager(queueMgrName);
         printLog("Successfull connection to " + queueMgrName);
     }
@@ -392,7 +382,7 @@ public class MQConnection {
     public boolean closeConnection() throws Exception {
         try {
             queueMgr.close();
-            printLog("Connection with " + queueMgrName + " closed");
+            printLog("Connection to Queue Manager closed");
             queueMgr = null;
             return true;
         }
