@@ -34,13 +34,40 @@ public class MQConnection {
     }
     
     /**
+     * Returns queue, opened to put messages
+     * @param putQueueName
+     * @return MQQueue object
+     */
+    public MQQueue openPutQueue(String putQueueName) throws Exception {
+        return queueMgr.accessQueue(putQueueName, MQConstants.MQOO_BIND_NOT_FIXED | MQConstants.MQOO_OUTPUT);
+    }
+    
+    /**
+     * Returns queue, opened to get messages
+     * @param getQueueName
+     * @return MQQueue object
+     */
+    public MQQueue openGetQueue(String getQueueName) throws Exception {
+        return queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
+    }
+    
+    /**
+     * Returns queue, opened to browse messages
+     * @param getQueueName
+     * @return MQQueue object
+     */
+    public MQQueue openBrowseQueue(String getQueueName) throws Exception {
+        return queueMgr.accessQueue(getQueueName, MQConstants.MQOO_BROWSE | MQConstants.MQOO_INPUT_SHARED);
+    }
+    
+    /**
      * Creates connection to MQ manager
      * @param queueMgrName
      * @param queueMgrHostname
      * @param queueMgrPort
      * @param queueMgrChannel 
      */
-    public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) {
+    public MQConnection(String queueMgrName, String queueMgrHostname, int queueMgrPort, String queueMgrChannel) throws Exception {
         this.queueMgrName = queueMgrName;
         this.queueMgrHostname = queueMgrHostname;
         this.queueMgrPort = queueMgrPort;
@@ -50,14 +77,8 @@ public class MQConnection {
         MQEnvironment.port = this.queueMgrPort;
         MQEnvironment.channel = this.queueMgrChannel;
         
-        try {
-            queueMgr = new MQQueueManager(queueMgrName);
-            printLog("Successfull connection to " + queueMgrName);
-        }
-        catch (MQException ex) {
-            printLog("Error connecting to queue manager. Reason: " + ex.reasonCode);
-            printLog(ex.getMessage());
-        }
+        queueMgr = new MQQueueManager(queueMgrName);
+        printLog("Successfull connection to " + queueMgrName);
     }
     
     /**
@@ -65,33 +86,24 @@ public class MQConnection {
      * @param putQueueName
      * @return Returns flag of success
      */
-    public boolean clearQueue(String putQueueName) {
+    public void clearQueue(String putQueueName) throws Exception {
         int depth = 0;
-        
-        try {       
-            int openOptions = MQConstants.MQOO_INQUIRE;  
-            MQQueue queue = queueMgr.accessQueue(putQueueName, openOptions);  
-            depth = queue.getCurrentDepth();  
-            queue.close();
-           
-            openOptions = MQConstants.MQOO_INPUT_AS_Q_DEF;
-            queue = queueMgr.accessQueue(putQueueName, openOptions);  
-            MQMessage message = new MQMessage();
-           
-            for (int i = 0; i < depth; ++i) {
-                queue.get(message);
-                message = null;
-                message = new MQMessage();
-            }
-            queue.close();  
-            printLog("Queue " + putQueueName + ": cleared");
-            return true;
-        } 
-        catch (MQException ex) {  
-            printLog("clearQueue(" + putQueueName + "): error");
-            printLog(ex.toString());
-            return false;
+        int openOptions = MQConstants.MQOO_INQUIRE;  
+        MQQueue queue = queueMgr.accessQueue(putQueueName, openOptions);  
+        depth = queue.getCurrentDepth();  
+        queue.close();
+
+        openOptions = MQConstants.MQOO_INPUT_AS_Q_DEF;
+        queue = queueMgr.accessQueue(putQueueName, openOptions);  
+        MQMessage message = new MQMessage();
+
+        for (int i = 0; i < depth; ++i) {
+            queue.get(message);
+            message = null;
+            message = new MQMessage();
         }
+        queue.close();  
+        printLog("Queue " + putQueueName + ": cleared");
     }
     
     /** 
@@ -100,23 +112,26 @@ public class MQConnection {
      * @param message 
      * @return Returns flag of success
      */
-    public boolean sendMessage(String putQueueName, MQMessage message) {
-        MQQueue putQueue = null;
+    public void sendMessage(String putQueueName, MQMessage message) throws Exception {
+        MQQueue putQueue = queueMgr.accessQueue(putQueueName, MQConstants.MQOO_BIND_NOT_FIXED | MQConstants.MQOO_OUTPUT);
         MQPutMessageOptions pmo = new MQPutMessageOptions();
-        try {
-            putQueue = queueMgr.accessQueue(putQueueName, MQConstants.MQOO_BIND_NOT_FIXED | MQConstants.MQOO_OUTPUT);
-            pmo.options = MQConstants.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.            
-            putQueue.put(message, pmo);
-            putQueue.close();
-            
-            printLog("sendMessageSingle: message sent to " + putQueueName);
-            return true;
-        } 
-        catch(Exception ex) {
-            printLog("sendMessageSingle: error");
-            printLog(ex.toString());
-            return false;
-        }
+        pmo.options = MQConstants.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.            
+        putQueue.put(message, pmo);
+        putQueue.close();
+        printLog("sendMessageSingle: message sent to " + putQueueName);
+    }
+    
+    /** 
+     * Sending single message to open queue
+     * @param putQueueName
+     * @param message 
+     * @return Returns flag of success
+     */
+    public void sendMessage(MQQueue putQueue, MQMessage message) throws Exception {
+        MQPutMessageOptions pmo = new MQPutMessageOptions();
+        pmo.options = MQConstants.MQPMO_NEW_MSG_ID; // The queue manager replaces the contents of the MsgId field in MQMD with a new message identifier.            
+        putQueue.put(message, pmo);    
+        printLog("sendMessageSingle: message sent to " + putQueue.name);
     }
     
     /** 
@@ -126,21 +141,23 @@ public class MQConnection {
      * @param pmo MQPut message options
      * @return Returns flag of success
      */
-    public boolean sendMessage(String putQueueName, MQMessage message, MQPutMessageOptions pmo) {
-        MQQueue putQueue = null;
-        try {
-            putQueue = queueMgr.accessQueue(putQueueName, MQConstants.MQOO_BIND_NOT_FIXED | MQConstants.MQOO_OUTPUT);
-            putQueue.put(message, pmo);
-            putQueue.close();
-            
-            printLog("sendMessageSingle: message sent to " + putQueueName);
-            return true;
-        } 
-        catch(Exception ex) {
-            printLog("sendMessageSingle: error");
-            printLog(ex.toString());
-            return false;
-        }
+    public void sendMessage(String putQueueName, MQMessage message, MQPutMessageOptions pmo) throws Exception {
+        MQQueue putQueue = queueMgr.accessQueue(putQueueName, MQConstants.MQOO_BIND_NOT_FIXED | MQConstants.MQOO_OUTPUT);
+        putQueue.put(message, pmo);
+        putQueue.close();
+        printLog("sendMessageSingle: message sent to " + putQueueName);
+    }
+    
+    /** 
+     * Sending single message to chosen queue with certain parameters
+     * @param putQueueName
+     * @param message 
+     * @param pmo MQPut message options
+     * @return Returns flag of success
+     */
+    public void sendMessage(MQQueue putQueue, MQMessage message, MQPutMessageOptions pmo) throws Exception {
+        putQueue.put(message, pmo);
+        printLog("sendMessageSingle: message sent to " + putQueue.name);
     }
     
     /**
@@ -148,26 +165,29 @@ public class MQConnection {
      * @param getQueueName
      * @return Returns flag of success
      */
-    public MQMessage browseMessage(String getQueueName) {
-        MQQueue getQueue = null;
+    public MQMessage browseMessage(String getQueueName) throws Exception {
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
-        byte[] responseMsgData = null;
-        String msg = null;  
-        
-        try {
-            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_BROWSE | MQConstants.MQOO_INPUT_SHARED);
-            gmo.options = MQConstants.MQGMO_WAIT | MQConstants.MQGMO_BROWSE_NEXT ;
-            getQueue.get(responseMsg, gmo);
-            getQueue.close();
-
-            printLog("browseMessage: message browsed from " + getQueueName);
-
-            return responseMsg;
-        } catch (Exception ex) {
-            printLog("Error while browseMessage");
-            return null;
-        }
+        MQQueue getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_BROWSE | MQConstants.MQOO_INPUT_SHARED);
+        gmo.options = MQConstants.MQGMO_WAIT | MQConstants.MQGMO_BROWSE_NEXT ;
+        getQueue.get(responseMsg, gmo);
+        getQueue.close();
+        printLog("browseMessage: message browsed from " + getQueueName);
+        return responseMsg;
+    }
+    
+    /**
+     * Browsing first message in queue
+     * @param getQueueName
+     * @return Returns flag of success
+     */
+    public MQMessage browseMessage(MQQueue browseQueue) throws Exception {
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        gmo.options = MQConstants.MQGMO_WAIT | MQConstants.MQGMO_BROWSE_NEXT ;
+        browseQueue.get(responseMsg, gmo);
+        printLog("browseMessage: message browsed from " + browseQueue.name);
+        return responseMsg;
     }
     
     /**
@@ -176,30 +196,34 @@ public class MQConnection {
      * @param request
      * @return Returns flag of success
      */
-    public MQMessage browseMessage(String getQueueName, MQMessage request) {
-        MQQueue getQueue = null;
+    public MQMessage browseMessage(String getQueueName, MQMessage request) throws Exception {
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
-        byte[] responseMsgData = null;
-        String msg = null;  
-        
-        try {
-            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_BROWSE | MQConstants.MQOO_INPUT_SHARED);
-            gmo.options = MQConstants.MQGMO_WAIT | MQConstants.MQGMO_BROWSE_NEXT ;
-            
-            responseMsg.messageId = request.messageId;
-            gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
-            
-            getQueue.get(responseMsg, gmo);
-            getQueue.close();
-
-            printLog("browseMessage: message browsed from " + getQueueName);
-
-            return responseMsg;
-        } catch (Exception ex) {
-            printLog("Error while browseMessage");
-            return null;
-        }
+        MQQueue getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_BROWSE | MQConstants.MQOO_INPUT_SHARED);
+        gmo.options = MQConstants.MQGMO_WAIT | MQConstants.MQGMO_BROWSE_NEXT ;
+        responseMsg.messageId = request.messageId;
+        gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
+        getQueue.get(responseMsg, gmo);
+        getQueue.close();
+        printLog("browseMessage: message browsed from " + getQueueName);
+        return responseMsg;
+    }
+    
+    /**
+     * Browsing first message in queue with request messageId 
+     * @param getQueueName
+     * @param request
+     * @return Returns flag of success
+     */
+    public MQMessage browseMessage(MQQueue browseQueue, MQMessage request) throws Exception {
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        gmo.options = MQConstants.MQGMO_WAIT | MQConstants.MQGMO_BROWSE_NEXT ;
+        responseMsg.messageId = request.messageId;
+        gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
+        browseQueue.get(responseMsg, gmo);
+        printLog("browseMessage: message browsed from " + browseQueue.name);
+        return responseMsg;
     }
     
     /**
@@ -207,26 +231,27 @@ public class MQConnection {
      * @param getQueueName
      * @return Returns flag of success
      */
-    public MQMessage getMessage(String getQueueName) {
-        MQQueue getQueue = null;
+    public MQMessage getMessage(String getQueueName) throws Exception {
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
-        byte[] responseMsgData = null;
-        String msg = null;  
-        
-        try {
-            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
-            
-            getQueue.get(responseMsg, gmo);
-            getQueue.close();
-
-            printLog("getMessage: message recieved from " + getQueueName);
-
-            return responseMsg;
-        } catch (Exception ex) {
-            printLog("Error while getMessage");
-            return null;
-        }
+        MQQueue getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
+        getQueue.get(responseMsg, gmo);
+        getQueue.close();
+        printLog("getMessage: message recieved from " + getQueueName);
+        return responseMsg;
+    }
+    
+    /**
+     * Getting first message in queue
+     * @param getQueueName
+     * @return Returns flag of success
+     */
+    public MQMessage getMessage(MQQueue getQueue) throws Exception {
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        getQueue.get(responseMsg, gmo);
+        printLog("getMessage: message recieved from " + getQueue.name);
+        return responseMsg;
     }
     
     /**
@@ -235,28 +260,32 @@ public class MQConnection {
      * @param timeout
      * @return Returns flag of success
      */
-    public MQMessage getMessage(String getQueueName, int timeout) {
-        MQQueue getQueue = null;
+    public MQMessage getMessage(String getQueueName, int timeout) throws Exception {
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
-        byte[] responseMsgData = null;
-        String msg = null;  
-        
-        try {
-            gmo.options = MQConstants.MQGMO_WAIT;
-            gmo.waitInterval = timeout;
-            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
-            
-            getQueue.get(responseMsg, gmo);
-            getQueue.close();
-
-            printLog("getMessage: message recieved from " + getQueueName + " with timeout = " + new Integer(timeout).toString());
-
-            return responseMsg;
-        } catch (Exception ex) {
-            printLog("Error while getMessage");
-            return null;
-        }
+        gmo.options = MQConstants.MQGMO_WAIT;
+        gmo.waitInterval = timeout;
+        MQQueue getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
+        getQueue.get(responseMsg, gmo);
+        getQueue.close();
+        printLog("getMessage: message recieved from " + getQueueName + " with timeout = " + new Integer(timeout).toString());
+        return responseMsg;
+    }
+    
+    /**
+     * Getting first message in queue with chosen timeout
+     * @param getQueueName
+     * @param timeout
+     * @return Returns flag of success
+     */
+    public MQMessage getMessage(MQQueue getQueue, int timeout) throws Exception {
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        gmo.options = MQConstants.MQGMO_WAIT;
+        gmo.waitInterval = timeout;
+        getQueue.get(responseMsg, gmo);
+        printLog("getMessage: message recieved from " + getQueue.name + " with timeout = " + new Integer(timeout).toString());
+        return responseMsg;
     }
     
     /**
@@ -265,29 +294,32 @@ public class MQConnection {
      * @param request
      * @return 
      */
-    public MQMessage getMessage(String getQueueName, MQMessage request) {
-        MQQueue getQueue = null;
+    public MQMessage getMessage(String getQueueName, MQMessage request) throws Exception {
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
-        byte[] responseMsgData = null;
-        String msg = null;  
-        
-        try {
-            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
-
-            responseMsg.messageId = request.messageId;
-            gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
-
-            getQueue.get(responseMsg, gmo);
-            getQueue.close();
-            
-            printLog("getMessage: message recieved from " + getQueueName + " with settings from request");
-            
-            return responseMsg;
-        } catch (Exception ex) {
-            printLog("Error while getMessage");
-            return null;
-        }
+        MQQueue getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
+        responseMsg.messageId = request.messageId;
+        gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
+        getQueue.get(responseMsg, gmo);
+        getQueue.close();            
+        printLog("getMessage: message recieved from " + getQueueName + " with settings from request");
+        return responseMsg;
+    }
+    
+    /**
+     * Getting message in qeueue with request messageId
+     * @param getQueueName
+     * @param request
+     * @return 
+     */
+    public MQMessage getMessage(MQQueue getQueue, MQMessage request) throws Exception {
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        responseMsg.messageId = request.messageId;
+        gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
+        getQueue.get(responseMsg, gmo);
+        printLog("getMessage: message recieved from " + getQueue.name + " with settings from request");
+        return responseMsg;
     }
     
     /**
@@ -297,31 +329,38 @@ public class MQConnection {
      * @param timeout
      * @return 
      */
-    public MQMessage getMessage(String getQueueName, MQMessage request, int timeout) {
+    public MQMessage getMessage(String getQueueName, MQMessage request, int timeout) throws Exception {
         MQQueue getQueue = null;
         MQGetMessageOptions gmo = new MQGetMessageOptions();
         MQMessage responseMsg = new MQMessage();
-        byte[] responseMsgData = null;
-        String msg = null;  
-        
-        try {
-            gmo.options = MQConstants.MQGMO_WAIT;
-            gmo.waitInterval = timeout;
-            getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
-
-            responseMsg.messageId = request.messageId;
-            gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
-
-            getQueue.get(responseMsg, gmo);
-            getQueue.close();
-            
-            printLog("getMessage: message recieved from " + getQueueName + " with settings from request");
-            
-            return responseMsg;
-        } catch (Exception ex) {
-            printLog("Error while getMessage");
-            return null;
-        }
+        gmo.options = MQConstants.MQGMO_WAIT;
+        gmo.waitInterval = timeout;
+        getQueue = queueMgr.accessQueue(getQueueName, MQConstants.MQOO_INPUT_AS_Q_DEF | MQConstants.MQOO_OUTPUT);
+        responseMsg.messageId = request.messageId;
+        gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
+        getQueue.get(responseMsg, gmo);
+        getQueue.close();
+        printLog("getMessage: message recieved from " + getQueueName + " with settings from request");    
+        return responseMsg;
+    }
+    
+    /**
+     * Getting message in queue with request messageId and chosen timeout
+     * @param getQueueName
+     * @param request
+     * @param timeout
+     * @return 
+     */
+    public MQMessage getMessage(MQQueue getQueue, MQMessage request, int timeout) throws Exception {
+        MQGetMessageOptions gmo = new MQGetMessageOptions();
+        MQMessage responseMsg = new MQMessage();
+        gmo.options = MQConstants.MQGMO_WAIT;
+        gmo.waitInterval = timeout;
+        responseMsg.messageId = request.messageId;
+        gmo.matchOptions=MQConstants.MQMO_MATCH_MSG_ID;
+        getQueue.get(responseMsg, gmo);          
+        printLog("getMessage: message recieved from " + getQueue.name + " with settings from request");            
+        return responseMsg;
     }
     
     /**
@@ -337,12 +376,11 @@ public class MQConnection {
             message.format = MQConstants.MQFMT_STRING;
             message.messageType = MQConstants.MQMT_REQUEST;
             message.writeString(messageString);
-            
             printLog("New MQMessage created from string");
-            
             return message;
         } catch(Exception ex) {
             printLog("Error while newMessage");
+            printLog(ex.toString());
             return null;
         }
     }
@@ -351,7 +389,7 @@ public class MQConnection {
      * Closing connection to queue manager
      * @return Returns flag of success
      */
-    public boolean closeConnection() {
+    public boolean closeConnection() throws Exception {
         try {
             queueMgr.close();
             printLog("Connection with " + queueMgrName + " closed");
@@ -360,6 +398,7 @@ public class MQConnection {
         }
         catch (MQException ex) {
             printLog("Error while closeConnection");
+            printLog(ex.toString());
             return false;
         }
     }
