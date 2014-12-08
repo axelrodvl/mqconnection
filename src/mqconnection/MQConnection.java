@@ -369,6 +369,20 @@ public class MQConnection {
     }
     
     /**
+     * Getting message in queue with request messageId and chosen timeout
+     * @param getQueueName
+     * @param request
+     * @param timeout
+     * @return 
+     */
+    public MQMessage getMessage(MQQueue getQueue, MQGetMessageOptions gmo) throws Exception {
+        MQMessage responseMsg = new MQMessage();
+        getQueue.get(responseMsg, gmo);          
+        printLog("getMessage: message recieved from " + getQueue.name + " with settings from request");            
+        return responseMsg;
+    }
+    
+    /**
      * Returns new MQMessage with basic parameters and body from messageString
      * @param messageString
      * @return Returns flag of success
