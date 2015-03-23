@@ -19,8 +19,6 @@ public class MQConnection {
         this.loggingEnabled = true;
     }
     
-    // Git check
-    
     /**
      * Printing message to standard output (System.out.println())
      * @param message Message to print
