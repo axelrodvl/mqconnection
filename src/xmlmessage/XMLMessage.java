@@ -91,11 +91,7 @@ public class XMLMessage {
         try {
             NodeList nodes = (NodeList) xpath.evaluate(xPathExpression, document, XPathConstants.NODESET);
             for (int k = 0; k < nodes.getLength(); k++)
-            {
-                //System.out.println(nodes.item(k).getTextContent());  // Prints original value
                 nodes.item(k).setTextContent(xPathValue);
-                //System.out.println(nodes.item(k).getTextContent());  // Prints 111 after
-            }
             updateMsgBody();
             return true;
         }
@@ -120,29 +116,6 @@ public class XMLMessage {
         
         return false;
     }
-    
-    /*
-    public static boolean assertXML(XMLMessage xml1, XMLMessage xml2) {
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        dbf.setCoalescing(true);
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setIgnoringComments(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
-
-        //Document doc1 = db.parse(new File("file1.xml"));
-        //doc1.normalizeDocument();
-        Document doc1 = xml1.document;
-        doc1.normalizeDocument();
-
-        Document doc2 = xml2.document;
-        doc2.normalizeDocument();
-
-        Assert.assertTrue(doc1.isEqualNode(doc2));
-        
-        return true;
-    }
-    */
     
     @Override
     public String toString() {
